@@ -1,19 +1,20 @@
 package com.example.r7mobiiliprojekti
 
+
+
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
-
+import android.widget.LinearLayout
 import android.widget.Toast
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
- class GoogleLogin : AppCompatActivity() {
+class SignInActivity : AppCompatActivity() {
 
 
     companion object {
@@ -35,10 +36,10 @@ import com.google.firebase.auth.GoogleAuthProvider
         val currentUser = auth.currentUser
 
         if (currentUser != null) {
-            // The user is already signed in, navigate to MainActivity
+
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-            finish() // finish the current activity to prevent the user from coming back to the SignInActivity using the back button
+            finish()
         }
 
 
@@ -90,5 +91,7 @@ import com.google.firebase.auth.GoogleAuthProvider
             }
     }
 }
+
+
 
       

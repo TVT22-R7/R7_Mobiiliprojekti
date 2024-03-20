@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "396868945373-lk20e723a0mr1e0qns118alubbqtgnpd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.r7mobiiliprojekti",
+            "certificate_hash": "ee40e8d78df1610072d275bbf73e5957aaf3f17a"
+          }
+        },
+        {
           "client_id": "396868945373-s7qso6aovgu78c8bhvnrm00lv3bdgei8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
-import com.example.r7mobiiliprojekti.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -47,12 +46,12 @@ class MainActivity : AppCompatActivity() {
             val userName = user.displayName
             textView.text = "Welcome, " + userName
         } else {
-            // Handle the case where the user is not signed in
+
         }
 
 
 
-// Inside onCreate() method
+
         val sign_out_button = findViewById<Button>(R.id.logout_button)
         sign_out_button.setOnClickListener {
             signOutAndStartSignInActivity()
@@ -69,11 +68,10 @@ class MainActivity : AppCompatActivity() {
 
         mGoogleSignInClient.signOut().addOnCompleteListener(this) {
             // Optional: Update UI or show a message to the user
-            val intent = Intent(this@MainActivity, GoogleLogin::class.java)
+            val intent = Intent(this@MainActivity, SignInActivity::class.java)
             startActivity(intent)
             finish()
         }
     }
 }
-
       

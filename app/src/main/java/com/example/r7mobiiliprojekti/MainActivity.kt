@@ -1,52 +1,166 @@
 package com.example.r7mobiiliprojekti
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.Text
 
-class MainActivity : AppCompatActivity() {
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
 
-    private lateinit var mAuth: FirebaseAuth
-    private val profileFragment = ProfileFragment()
 
-    private val settingsFragment = SettingsFragment()
+class MainActivity : ComponentActivity() {
 
-    private val onNavigationItemSelectedListener =
-        BottomNavigationView.OnNavigationItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.navigation_profile -> {
-                    openFragment(profileFragment)
-                    return@OnNavigationItemSelectedListener true
-                }
-                R.id.navigation_settings -> {
-                    openFragment(settingsFragment)
-                    return@OnNavigationItemSelectedListener true
-                }
-            }
-            false
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        mAuth = Firebase.auth
 
-        val navigationView = findViewById<BottomNavigationView>(R.id.navigation_view)
-        navigationView.setOnNavigationItemSelectedListener(onNavigationItemSelectedListener)
-
-        // Open the profile fragment by default
-        openFragment(profileFragment)
+        setContent {
+            R7MobiiliprojektiTheme {
+                // A surface container using the 'background' color from the theme
+                Surface {
+                    MainContent()
+                }
+            }
+        }
     }
 
-    private fun openFragment(fragment: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, fragment)
-            .commit()
+    // funktio joka navigoi profiili sivulle
+    fun navigateToProfile(navController: NavHostController) {
+        navController.navigate(BottomNavigationScreens.Profile.route) {
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
     }
+    fun navigateToSettings(navController: NavHostController) {
+        navController.navigate(BottomNavigationScreens.Settings.route) {
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+    // funktio joka navigoi reseptit sivulle
+    fun navigateToRecipes(navController: NavHostController) {
+        navController.navigate(BottomNavigationScreens.Recipes.route) {
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+}
+
+@Composable
+fun MainContent() {
+    val navController = rememberNavController()
+    val activity = (LocalContext.current as? MainActivity) // Get MainActivity instance
+
+    // setupataa navigaatio
+    val items = listOf(
+        BottomNavigationScreens.Profile,
+        BottomNavigationScreens.Recipes,
+        BottomNavigationScreens.Settings
+    )
+
+    //navController.currentBackStackEntryAsState() tarkistaaa onko nykyinen painike valittu ja päivittää näytön näkymän sen mukaisesti
+    val backStackEntry by navController.currentBackStackEntryAsState()
+
+
+    Scaffold(
+        bottomBar = {
+            BottomNavigation(
+                backgroundColor = Color.Black
+            ) {
+                items.forEach { screen ->
+                    BottomNavigationItem(
+                        selected = backStackEntry?.destination?.route == screen.route,
+                        onClick = {
+                            //
+                            when (screen) {
+                                is BottomNavigationScreens.Profile -> activity?.navigateToProfile(navController)
+                                is BottomNavigationScreens.Recipes -> activity?.navigateToRecipes(navController)
+                                is BottomNavigationScreens.Settings -> activity?.navigateToSettings(navController)
+                                // lisätään tarvittaessa lisää ruutuja
+                            }
+                        },
+
+                        label = { Text(stringResource(screen.resourceId)) },
+                        icon = {
+                            when (screen) {
+                                //iconien asettelut, joista mennään näkymiin
+                                is BottomNavigationScreens.Profile -> Icon(Icons.Filled.Person, contentDescription = null)
+                                is BottomNavigationScreens.Recipes -> Icon(Icons.Filled.Menu, contentDescription = null)
+                                is BottomNavigationScreens.Settings -> Icon(Icons.Filled.Settings, contentDescription = null)// Handle other screens if needed
+                                else -> {
+
+                                }
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        //reititykset funktioihin tässätiedostossa
+        NavHost(navController, startDestination = BottomNavigationScreens.Profile.route, Modifier.padding(innerPadding)) {
+            composable(BottomNavigationScreens.Profile.route) {
+                Profile()
+            }
+            composable(BottomNavigationScreens.Recipes.route) {
+                RecipesPageContent()
+            }
+            composable(BottomNavigationScreens.Settings.route) {
+                Settings()
+            }
+        }
+    }
+}
+
+@Composable
+fun RecipesPageContent() {
+    RecipesPage()
+}
+
+@Composable
+fun Profile() {
+    ProfileScreen()
+}
+
+@Composable
+fun Settings() {
+    SettingsScreen()
+}
+// Alareunan navigointikohteiden luokka
+sealed class BottomNavigationScreens(
+    val route: String,
+    val resourceId: Int
+) {
+    object Profile : BottomNavigationScreens("profile", R.string.profile)
+    object Recipes : BottomNavigationScreens("recipes", R.string.recipes)
+    object Settings : BottomNavigationScreens("settings", R.string.settings)
 }

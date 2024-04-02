@@ -2,5 +2,7 @@
     <string name="app_name">R7 Mobiiliprojekti</string>
     <string name="default_web_client_id" />
     <string name="recipes">Recipes</string>
+    <string name="profile">Recipes</string>
+    <string name="settings">Recipes</string>
 
 </resources>

@@ -1,56 +1,42 @@
 package com.example.r7mobiiliprojekti
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
-import androidx.fragment.app.Fragment
-import com.example.r7mobiiliprojekti.R
-import com.example.r7mobiiliprojekti.SignInActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.ktx.Firebase
 
-class ProfileFragment : Fragment() {
+@Composable
+fun ProfileScreen() {
+    val mAuth = FirebaseAuth.getInstance()
+    val currentUser = mAuth.currentUser
 
-    private lateinit var mAuth: FirebaseAuth
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_profile, container, false)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Welcome, ${currentUser?.displayName}",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 16.dp)
+        )
 
-        mAuth = Firebase.auth
-        val currentUser = mAuth.currentUser
-
-        // Find views
-        val welcomeMessageTextView = view.findViewById<TextView>(R.id.welcome_message)
-        val logoutButton = view.findViewById<Button>(R.id.logout_button)
-
-        // Display welcome message with username
-        currentUser?.let {
-            val userName = it.displayName
-            welcomeMessageTextView.text = "Welcome, $userName"
-        }
-
-        // Handle logout button click
-        logoutButton.setOnClickListener {
-            signOutAndStartSignInActivity()
-        }
-
-        return view
-    }
-
-    private fun signOutAndStartSignInActivity() {
-        mAuth.signOut()
-
-        val intent = Intent(requireContext(), SignInActivity::class.java)
-        startActivity(intent)
-        requireActivity().finish()
     }
 }
+
+

@@ -1,18 +1,54 @@
 package com.example.r7mobiiliprojekti
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 
-class SettingsFragment : Fragment() {
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.google.firebase.auth.FirebaseAuth
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_settings, container, false)
+
+@Composable
+fun SettingsScreen() {
+    val mAuth = FirebaseAuth.getInstance()
+    val currentUser = mAuth.currentUser
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Settings",
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(16.dp)
+        )
+        Button(
+            onClick = { signOutAndStartSignInActivity(context) }
+        ) {
+            Text(text = "Logout")
+        }
+
     }
+
+}
+private fun signOutAndStartSignInActivity(context: Context) {
+    val mAuth = FirebaseAuth.getInstance()
+    mAuth.signOut()
+
+    val intent = Intent(context, SignInActivity::class.java)
+    context.startActivity(intent)
+
+    (context as? Activity)?.finish()
 }

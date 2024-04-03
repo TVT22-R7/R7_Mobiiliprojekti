@@ -32,12 +32,13 @@ fun SettingsScreen() {
         Text(
             text = "Settings",
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(40.dp)
         )
         Button(
             onClick = { signOutAndStartSignInActivity(context) }
         ) {
-            Text(text = "Logout")
+            Text(text = "Logout"
+            )
         }
 
     }

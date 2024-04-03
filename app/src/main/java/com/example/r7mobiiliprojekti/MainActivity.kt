@@ -94,7 +94,7 @@ fun MainContent() {
     Scaffold(
         bottomBar = {
             BottomNavigation(
-                backgroundColor = Color.Black
+                backgroundColor = Color.Gray
             ) {
                 items.forEach { screen ->
                     BottomNavigationItem(
@@ -116,9 +116,7 @@ fun MainContent() {
                                 is BottomNavigationScreens.Profile -> Icon(Icons.Filled.Person, contentDescription = null)
                                 is BottomNavigationScreens.Recipes -> Icon(Icons.Filled.Menu, contentDescription = null)
                                 is BottomNavigationScreens.Settings -> Icon(Icons.Filled.Settings, contentDescription = null)// Handle other screens if needed
-                                else -> {
 
-                                }
                             }
                         }
                     )

@@ -12,6 +12,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -19,7 +20,7 @@ import androidx.compose.ui.unit.dp
 fun RecipesPage() {
     val itemList = listOf("Banana", "Tomato", "EGGS", "Milk", "Pepsi","bread")
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
         ItemList(itemList = itemList)
     }
 }

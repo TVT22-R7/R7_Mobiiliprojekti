@@ -2,6 +2,7 @@ package com.example.r7mobiiliprojekti
 
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,29 +11,32 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.aallam.openai.api.chat.ChatMessage
+import com.aallam.openai.api.chat.ChatRole
+import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.http.Timeout
+import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.launch
 
 class RecipesPage : ComponentActivity() {
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        val openai = OpenAI(
-            token = "your-api-key",
-            timeout = Timeout(socket = 60.seconds),
-            // additional configurations...
-        )
-
         super.onCreate(savedInstanceState)
 
         setContent {
@@ -40,10 +44,53 @@ class RecipesPage : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface {
                     ItemList(listOf("Banana", "Tomato", "EGGS"))
-                    TextFieldCompose(myText = BuildConfig.OPENAI_API_KEY)
+                    F()
                 }
             }
         }
+    }
+}
+
+private suspend fun createMessage() : String{
+    val openAI = OpenAI(
+        token = BuildConfig.OPENAI_API_KEY
+    )
+    val modelId = ModelId("gpt-3.5-turbo")
+
+    val chatMessages = mutableListOf(
+        ChatMessage(
+            role = ChatRole.User,
+            content = "Where can I see your usage?"
+        )
+    )
+
+    val request = chatCompletionRequest {
+        model = modelId
+        messages = chatMessages
+    }
+
+    val response = openAI.chatCompletion(request)
+    val message = response.choices.first().message.content ?: "message not found"
+    Log.d("chat message", message)
+    return message
+}
+
+@Composable
+fun F() {
+    // Returns a scope that's cancelled when F is removed from composition
+    val coroutineScope = rememberCoroutineScope()
+
+    val (location, setLocation) = remember { mutableStateOf<String?>(null) }
+
+    val getLocationOnClick: () -> Unit = {
+        coroutineScope.launch {
+            val response: String = createMessage()
+            Log.d("chat message", response)
+        }
+    }
+
+    Button(onClick = getLocationOnClick) {
+        Text("Create Recipe")
     }
 }
 

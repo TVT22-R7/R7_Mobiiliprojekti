@@ -2,7 +2,19 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
+
+secrets {
+    // Optionally specify a different file name containing your secrets.
+    // The plugin defaults to "local.properties"
+    propertiesFileName = "secrets.properties"
+
+    // A properties file containing default secret values. This file can be
+    // checked in version control.
+    defaultPropertiesFileName = "local.defaults.properties"
+}
+
 
 android {
     namespace = "com.example.r7mobiiliprojekti"
@@ -39,6 +51,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -83,5 +96,6 @@ dependencies {
     implementation ("androidx.compose.material:material:1.6.4")
     implementation ("androidx.navigation:navigation-compose:2.7.7")
     implementation ("com.aallam.openai:openai-client:3.7.1")
+    implementation("io.ktor:ktor-client-android:2.3.9")
 
 }

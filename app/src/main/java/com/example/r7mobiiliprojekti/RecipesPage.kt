@@ -3,6 +3,7 @@ package com.example.r7mobiiliprojekti
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,25 +20,40 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.client.OpenAI
+import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import kotlin.time.Duration.Companion.seconds
 
-class OpenAIPage : ComponentActivity() {
+class RecipesPage : ComponentActivity() {
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
-        val env = System.getenv("OPENAI_API_KEY")
-        print(env)
+    override fun onCreate(savedInstanceState: Bundle?) {
+
+        val openai = OpenAI(
+            token = "your-api-key",
+            timeout = Timeout(socket = 60.seconds),
+            // additional configurations...
+        )
+
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            R7MobiiliprojektiTheme {
+                // A surface container using the 'background' color from the theme
+                Surface {
+                    ItemList(listOf("Banana", "Tomato", "EGGS"))
+                    TextFieldCompose(myText = BuildConfig.OPENAI_API_KEY)
+                }
+            }
+        }
     }
-
-    val openai = OpenAI(
-        token = "your-api-key",
-        timeout = Timeout(socket = 60.seconds),
-        // additional configurations...
-    )
 }
 
 @Composable
-fun RecipesPage() {
+fun TextFieldCompose(myText: String) {
+    Text(text = myText)
+}
+
+@Composable
+fun RecipesPageCompose() {
     val itemList = listOf("Banana", "Tomato", "EGGS", "Milk", "Pepsi","bread")
 
     Surface(modifier = Modifier.fillMaxSize()) {

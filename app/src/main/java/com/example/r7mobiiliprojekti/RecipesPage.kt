@@ -44,14 +44,14 @@ class RecipesPage : ComponentActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface {
                     ItemList(listOf("Banana", "Tomato", "EGGS"))
-                    F()
+                    CreateRecipe()
                 }
             }
         }
     }
 }
 
-private suspend fun createMessage() : String{
+private suspend fun createMessage(request: String) : String{
     val openAI = OpenAI(
         token = BuildConfig.OPENAI_API_KEY
     )
@@ -60,7 +60,7 @@ private suspend fun createMessage() : String{
     val chatMessages = mutableListOf(
         ChatMessage(
             role = ChatRole.User,
-            content = "Where can I see your usage?"
+            content = request
         )
     )
 
@@ -76,23 +76,25 @@ private suspend fun createMessage() : String{
 }
 
 @Composable
-fun F() {
+fun CreateRecipe() {
     // Returns a scope that's cancelled when F is removed from composition
     val coroutineScope = rememberCoroutineScope()
 
     val (location, setLocation) = remember { mutableStateOf<String?>(null) }
 
-    val getLocationOnClick: () -> Unit = {
+    val createRecipeOnClick: () -> Unit = {
         coroutineScope.launch {
-            val response: String = createMessage()
+            val response: String = createMessage("Hey")
             Log.d("chat message", response)
         }
     }
 
-    Button(onClick = getLocationOnClick) {
+    Button(onClick = createRecipeOnClick) {
         Text("Create Recipe")
     }
 }
+
+
 
 @Composable
 fun TextFieldCompose(myText: String) {

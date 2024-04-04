@@ -11,16 +11,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+
+
+
 @Composable
 fun RecipesPage() {
     val itemList = listOf("Banana", "Tomato", "EGGS", "Milk", "Pepsi","bread")
-
-    Surface(color = Color.White, modifier = Modifier.fillMaxSize()) {
+    var darkModeEnabled = remember { isDarkMode }
+    Surface(
+        color = if (darkModeEnabled) Color.DarkGray else Color.White,
+        modifier = Modifier.fillMaxSize()
+    ) {
         ItemList(itemList = itemList)
     }
 }

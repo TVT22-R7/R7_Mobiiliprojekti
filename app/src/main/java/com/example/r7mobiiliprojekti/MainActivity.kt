@@ -25,6 +25,7 @@ import androidx.compose.material.Text
 
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
 
 
 class MainActivity : ComponentActivity() {
@@ -63,6 +64,15 @@ class MainActivity : ComponentActivity() {
             restoreState = true
         }
     }
+    fun navigateToGrocery(navController: NavHostController) {
+        navController.navigate(BottomNavigationScreens.GroceryList.route) {
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
     // funktio joka navigoi reseptit sivulle
     fun navigateToRecipes(navController: NavHostController) {
         navController.navigate(BottomNavigationScreens.Recipes.route) {
@@ -83,8 +93,10 @@ fun MainContent() {
     // setupataa navigaatio
     val items = listOf(
         BottomNavigationScreens.Profile,
+        BottomNavigationScreens.GroceryList,
         BottomNavigationScreens.Recipes,
         BottomNavigationScreens.Settings
+
     )
 
     //navController.currentBackStackEntryAsState() tarkistaaa onko nykyinen painike valittu ja päivittää näytön näkymän sen mukaisesti
@@ -94,7 +106,7 @@ fun MainContent() {
     Scaffold(
         bottomBar = {
             BottomNavigation(
-                backgroundColor = Color.Black
+                backgroundColor = Color.Gray
             ) {
                 items.forEach { screen ->
                     BottomNavigationItem(
@@ -103,9 +115,10 @@ fun MainContent() {
                             //
                             when (screen) {
                                 is BottomNavigationScreens.Profile -> activity?.navigateToProfile(navController)
+                                is BottomNavigationScreens.GroceryList -> activity?.navigateToGrocery(navController)
                                 is BottomNavigationScreens.Recipes -> activity?.navigateToRecipes(navController)
                                 is BottomNavigationScreens.Settings -> activity?.navigateToSettings(navController)
-                                // lisätään tarvittaessa lisää ruutuja
+                                 // lisätään tarvittaessa lisää ruutuja
                             }
                         },
 
@@ -114,8 +127,10 @@ fun MainContent() {
                             when (screen) {
                                 //iconien asettelut, joista mennään näkymiin
                                 is BottomNavigationScreens.Profile -> Icon(Icons.Filled.Person, contentDescription = null)
+                                is BottomNavigationScreens.GroceryList -> Icon(Icons.Filled.ShoppingCart, contentDescription = null)
                                 is BottomNavigationScreens.Recipes -> Icon(Icons.Filled.Menu, contentDescription = null)
                                 is BottomNavigationScreens.Settings -> Icon(Icons.Filled.Settings, contentDescription = null)// Handle other screens if needed
+
                                 else -> {
 
                                 }
@@ -131,14 +146,23 @@ fun MainContent() {
             composable(BottomNavigationScreens.Profile.route) {
                 Profile()
             }
+            composable(BottomNavigationScreens.GroceryList.route) {
+                GroceryList()
+            }
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesPageContent()
             }
             composable(BottomNavigationScreens.Settings.route) {
                 Settings()
             }
+
         }
     }
+}
+
+@Composable
+fun GroceryList() {
+    //ostoslista tiedoston composable
 }
 
 @Composable
@@ -161,6 +185,8 @@ sealed class BottomNavigationScreens(
     val resourceId: Int
 ) {
     object Profile : BottomNavigationScreens("profile", R.string.profile)
+    object GroceryList : BottomNavigationScreens("Grocery", R.string.GroceryList)
     object Recipes : BottomNavigationScreens("recipes", R.string.recipes)
     object Settings : BottomNavigationScreens("settings", R.string.settings)
+
 }

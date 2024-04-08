@@ -26,6 +26,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.foundation.clickable
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 
 class MainActivity : ComponentActivity() {
@@ -83,12 +86,17 @@ class MainActivity : ComponentActivity() {
             restoreState = true
         }
     }
+    fun navigateToSearch(navController: NavHostController) {
+        navController.navigate("search")
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent() {
     val navController = rememberNavController()
     val activity = (LocalContext.current as? MainActivity) // Get MainActivity instance
+    val viewModel: IngredientViewModel = viewModel()
 
     // setupataa navigaatio
     val items = listOf(
@@ -104,6 +112,24 @@ fun MainContent() {
 
 
     Scaffold(
+        topBar = {
+            Surface(
+                modifier = Modifier.clickable {
+                    activity?.navigateToSearch(navController)
+                }
+            ) {
+                TopAppBar(
+                    title = { Text(text = "Search...") },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            activity?.navigateToSearch(navController)
+                        }) {
+                            Icon(Icons.Filled.Search, contentDescription = "Search")
+                        }
+                    }
+                )
+            }
+        },
         bottomBar = {
             BottomNavigation(
                 backgroundColor = Color.Gray
@@ -118,7 +144,7 @@ fun MainContent() {
                                 is BottomNavigationScreens.GroceryList -> activity?.navigateToGrocery(navController)
                                 is BottomNavigationScreens.Recipes -> activity?.navigateToRecipes(navController)
                                 is BottomNavigationScreens.Settings -> activity?.navigateToSettings(navController)
-                                 // lisätään tarvittaessa lisää ruutuja
+                                // lisätään tarvittaessa lisää ruutuja
                             }
                         },
 
@@ -150,10 +176,17 @@ fun MainContent() {
                 GroceryList()
             }
             composable(BottomNavigationScreens.Recipes.route) {
-                RecipesPageContent()
+                RecipesPage(viewModel = viewModel)
             }
             composable(BottomNavigationScreens.Settings.route) {
                 Settings()
+            }
+            composable("search") {
+                SearchView(
+                    viewModel = viewModel,
+                    appId = "id",
+                    appKey = "key"
+                )
             }
 
         }
@@ -167,7 +200,8 @@ fun GroceryList() {
 
 @Composable
 fun RecipesPageContent() {
-    RecipesPage()
+    val viewModel: IngredientViewModel = viewModel() // Obtain an instance of IngredientViewModel
+    RecipesPage(viewModel = viewModel)
 }
 
 @Composable

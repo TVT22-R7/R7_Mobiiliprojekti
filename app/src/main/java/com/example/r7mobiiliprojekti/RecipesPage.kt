@@ -141,6 +141,8 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
             )
         ) {
             Text(
+                modifier = Modifier
+                    .padding(all = 16.dp),
                 text = text,
                 style = MaterialTheme.typography.headlineMedium,
                 fontSize = 16.sp,

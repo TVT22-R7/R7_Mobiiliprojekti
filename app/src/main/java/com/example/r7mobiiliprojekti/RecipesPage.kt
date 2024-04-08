@@ -56,12 +56,18 @@ fun RecipesPage() {
         mutableStateOf(false)
     }
 
+    var ingredientList by remember {
+        mutableStateOf(emptyList<String>())
+    }
+
     // Launches a coroutine to get openai response
     val createRecipeOnClick: () -> Unit = {
         coroutineScope.launch {
-            recipeText = createMessage("Hey")
+            ingredientList = ingredientList + "banana" + "cinnamon"
+            val ingredients = ingredientList.joinToString(separator = ", ")
+            recipeText = createMessage(ingredients)
             recipeVisible = true
-            Log.d("chat message", recipeText)
+            Log.d("chat message", ingredients)
         }
     }
 
@@ -74,25 +80,31 @@ fun RecipesPage() {
     }
 }
 
+// Creates openai bot, sends a request and returns the answer
 private suspend fun createMessage(request: String) : String{
     val openAI = OpenAI(
         token = BuildConfig.OPENAI_API_KEY
     )
+
     val modelId = ModelId("gpt-3.5-turbo")
 
     val chatMessages = mutableListOf(
+        ChatMessage(
+            role = ChatRole.System,
+            content = "You help users to come up with a recipe using ingredients they already have. You don't have to use every ingredient. You can add items to purchase. List only name and ingredients."
+        ),
         ChatMessage(
             role = ChatRole.User,
             content = request
         )
     )
 
-    val request = chatCompletionRequest {
+    val completionRequest = chatCompletionRequest {
         model = modelId
         messages = chatMessages
     }
 
-    val response = openAI.chatCompletion(request)
+    val response = openAI.chatCompletion(completionRequest)
     val message = response.choices.first().message.content ?: "message not found"
     Log.d("chat message", message)
     return message
@@ -131,6 +143,7 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.headlineMedium,
+                fontSize = 16.sp,
             )
         }
         Button(

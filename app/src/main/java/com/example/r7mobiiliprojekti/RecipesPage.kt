@@ -42,13 +42,12 @@ import com.aallam.openai.client.OpenAI
 import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import kotlinx.coroutines.launch
 
-var response: String = ""
-
 @Composable
 fun RecipesPage() {
     // Returns a scope that's cancelled when RecipeButton is removed from composition
     val coroutineScope = rememberCoroutineScope()
 
+    // saves recipe received from openai
     var recipeText by remember {
         mutableStateOf("")
     }
@@ -57,11 +56,12 @@ fun RecipesPage() {
         mutableStateOf(false)
     }
 
+    // Launches a coroutine to get openai response
     val createRecipeOnClick: () -> Unit = {
         coroutineScope.launch {
             recipeText = createMessage("Hey")
             recipeVisible = true
-            Log.d("chat message", response)
+            Log.d("chat message", recipeText)
         }
     }
 

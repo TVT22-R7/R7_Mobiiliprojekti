@@ -5,6 +5,7 @@ import android.os.PersistableBundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -20,7 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.aallam.openai.api.chat.ChatMessage
@@ -32,23 +37,13 @@ import com.aallam.openai.client.OpenAI
 import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import kotlinx.coroutines.launch
 
-class RecipesPage : ComponentActivity() {
+@Composable
+fun RecipesPage() {
+    // val itemList = listOf("Banana", "Tomato", "EGGS", "Milk", "Pepsi","bread")
+    // ItemList(itemList = itemList)
 
+    RecipeButton()
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContent {
-            R7MobiiliprojektiTheme {
-                // A surface container using the 'background' color from the theme
-                Surface {
-                    ItemList(listOf("Banana", "Tomato", "EGGS"))
-                    CreateRecipe()
-                }
-            }
-        }
-    }
 }
 
 private suspend fun createMessage(request: String) : String{
@@ -76,15 +71,14 @@ private suspend fun createMessage(request: String) : String{
 }
 
 @Composable
-fun CreateRecipe() {
-    // Returns a scope that's cancelled when F is removed from composition
+fun RecipeButton() {
+    // Returns a scope that's cancelled when RecipeButton is removed from composition
     val coroutineScope = rememberCoroutineScope()
-
-    val (location, setLocation) = remember { mutableStateOf<String?>(null) }
+    var response: String = ""
 
     val createRecipeOnClick: () -> Unit = {
         coroutineScope.launch {
-            val response: String = createMessage("Hey")
+            response= createMessage("Hey")
             Log.d("chat message", response)
         }
     }
@@ -94,21 +88,33 @@ fun CreateRecipe() {
     }
 }
 
-
-
 @Composable
-fun TextFieldCompose(myText: String) {
-    Text(text = myText)
-}
-
-@Composable
-fun RecipesPageCompose() {
-    val itemList = listOf("Banana", "Tomato", "EGGS", "Milk", "Pepsi","bread")
-
-    Surface(modifier = Modifier.fillMaxSize()) {
-        ItemList(itemList = itemList)
+fun ResponseCard (text: String) {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        ElevatedCard(
+            modifier = Modifier
+                .width(screenWidth - 50.dp)
+                .height(screenHeight - 100.dp)
+                .align(Alignment.Center),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 50.dp
+            )
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
     }
 }
+
+
 
 @Composable
 fun ItemList(itemList: List<String>, modifier: Modifier = Modifier) {

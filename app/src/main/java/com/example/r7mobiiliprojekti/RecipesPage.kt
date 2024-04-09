@@ -32,6 +32,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Row
+import coil.compose.rememberImagePainter
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
@@ -43,9 +51,44 @@ import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun RecipesPage() {
+fun RecipesPage(viewModel: IngredientViewModel) {
+    val recipeIngredientsList by viewModel.recipeIngredientsList
+
+    LazyColumn {
+        items(recipeIngredientsList) { ingredient ->
+            IngredientRow(ingredient = ingredient)
+        }
+    
     // A button that generates a recipe using OpenAI, and shows the recipe to user
     GenerateRecipeComponent()
+    }
+}
+@Composable
+fun IngredientRow(ingredient: Ingredient) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        // Tuotteen kuva
+        Image(
+            painter = rememberImagePainter(ingredient.imageUrl),
+            contentDescription = null,
+            modifier = Modifier
+                .size(50.dp)
+                .clip(shape = RoundedCornerShape(8.dp))
+        )
+        // Tuotteen nimi
+        Text(
+            text = ingredient.name,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+
+        // Tuotteen määrä
+        Text(
+            text = "${ingredient.quantity}",
+            modifier = Modifier.padding(start = 8.dp)
+        )
+    }
 }
 
 // Creates openai bot, sends a request and returns the answer

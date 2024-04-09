@@ -32,13 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Row
 import coil.compose.rememberImagePainter
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
@@ -58,10 +55,10 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         items(recipeIngredientsList) { ingredient ->
             IngredientRow(ingredient = ingredient)
         }
-    
+    }
+
     // A button that generates a recipe using OpenAI, and shows the recipe to user
     GenerateRecipeComponent()
-    }
 }
 @Composable
 fun IngredientRow(ingredient: Ingredient) {

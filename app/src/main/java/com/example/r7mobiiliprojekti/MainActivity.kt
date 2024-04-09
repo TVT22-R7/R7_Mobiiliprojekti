@@ -184,8 +184,8 @@ fun MainContent() {
             composable("search") {
                 SearchView(
                     viewModel = viewModel,
-                    appId = "id",
-                    appKey = "key"
+                    appId = BuildConfig.APP_ID,
+                    appKey = BuildConfig.INGREDIENT_API_KEY
                 )
             }
 

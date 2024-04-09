@@ -44,6 +44,42 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun RecipesPage() {
+    // A button that generates a recipe using OpenAI, and shows the recipe to user
+    GenerateRecipeComponent()
+}
+
+// Creates openai bot, sends a request and returns the answer
+private suspend fun createMessage(request: String) : String{
+    val openAI = OpenAI(
+        token = BuildConfig.OPENAI_API_KEY
+    )
+
+    val modelId = ModelId("gpt-3.5-turbo")
+
+    val chatMessages = mutableListOf(
+        ChatMessage(
+            role = ChatRole.System,
+            content = "You help users to come up with a recipe using ingredients they already have. You don't have to use every ingredient. You can add items to purchase. List only name and ingredients."
+        ),
+        ChatMessage(
+            role = ChatRole.User,
+            content = request
+        )
+    )
+
+    val completionRequest = chatCompletionRequest {
+        model = modelId
+        messages = chatMessages
+    }
+
+    val response = openAI.chatCompletion(completionRequest)
+    val message = response.choices.first().message.content ?: "message not found"
+    Log.d("chat message", message)
+    return message
+}
+
+@Composable
+fun GenerateRecipeComponent() {
     // Returns a scope that's cancelled when RecipeButton is removed from composition
     val coroutineScope = rememberCoroutineScope()
 
@@ -78,40 +114,6 @@ fun RecipesPage() {
     if (recipeVisible){
         ResponseCard(text = recipeText, onClick = {recipeVisible = false})
     }
-}
-
-// Creates openai bot, sends a request and returns the answer
-private suspend fun createMessage(request: String) : String{
-    val openAI = OpenAI(
-        token = BuildConfig.OPENAI_API_KEY
-    )
-
-    val modelId = ModelId("gpt-3.5-turbo")
-
-    val chatMessages = mutableListOf(
-        ChatMessage(
-            role = ChatRole.System,
-            content = "You help users to come up with a recipe using ingredients they already have. You don't have to use every ingredient. You can add items to purchase. List only name and ingredients."
-        ),
-        ChatMessage(
-            role = ChatRole.User,
-            content = request
-        )
-    )
-
-    val completionRequest = chatCompletionRequest {
-        model = modelId
-        messages = chatMessages
-    }
-
-    val response = openAI.chatCompletion(completionRequest)
-    val message = response.choices.first().message.content ?: "message not found"
-    Log.d("chat message", message)
-    return message
-}
-
-fun test() {
-
 }
 
 @Composable

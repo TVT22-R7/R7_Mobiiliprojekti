@@ -40,6 +40,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
@@ -84,10 +86,14 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         }
     }
 
+    fun onItemRemove(ingredient: Ingredient){
+        viewModel.removeFromRecipe(ingredient)
+    }
+
     Column(modifier = Modifier) {
         LazyColumn {
             items(recipeIngredientsList) { ingredient ->
-                IngredientRow(ingredient = ingredient)
+                IngredientRow(ingredient = ingredient, onIngredientRemove = {onItemRemove(ingredient)})
             }
         }
 
@@ -102,7 +108,11 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
 
 @Composable
-fun IngredientRow(ingredient: Ingredient) {
+fun IngredientRow(ingredient: Ingredient, onIngredientRemove: () -> Unit) {
+    var ingredientQuantity by remember {
+        mutableStateOf(ingredient.quantity)
+    }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -121,11 +131,38 @@ fun IngredientRow(ingredient: Ingredient) {
             modifier = Modifier.padding(start = 8.dp)
         )
 
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Vähennä tuotteen määrää
+        FloatingActionButton(
+            modifier = Modifier
+                .size(36.dp),
+            onClick = {
+                if (ingredientQuantity > 1) {
+                    ingredientQuantity--
+                } else {
+                    onIngredientRemove()
+                }
+            }
+        ) {
+            Text(text = "-")
+        }
+
         // Tuotteen määrä
         Text(
-            text = "${ingredient.quantity}",
-            modifier = Modifier.padding(start = 8.dp)
+            text = "${ingredientQuantity}",
+            modifier = Modifier.padding(all = 8.dp)
         )
+
+        // Lisää tuotteen määrää
+        FloatingActionButton(
+            modifier = Modifier
+                .size(36.dp),
+            onClick = {ingredientQuantity++}
+        ) {
+            Text(text = "+")
+        }
+
     }
 }
 
@@ -252,5 +289,5 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    ResponseCard(text = "hello", {})
+    IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {})
 }

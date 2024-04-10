@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
@@ -86,14 +87,10 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         }
     }
 
-    fun onItemRemove(ingredient: Ingredient){
-        viewModel.removeFromRecipe(ingredient)
-    }
-
     Column(modifier = Modifier) {
         LazyColumn {
             items(recipeIngredientsList) { ingredient ->
-                IngredientRow(ingredient = ingredient, onIngredientRemove = {onItemRemove(ingredient)})
+                IngredientRow(ingredient = ingredient, onIngredientDown = {viewModel.removeFromRecipe(ingredient)})
             }
         }
 
@@ -108,9 +105,9 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
 
 @Composable
-fun IngredientRow(ingredient: Ingredient, onIngredientRemove: () -> Unit) {
+fun IngredientRow(ingredient: Ingredient, onIngredientDown: () -> Unit, onIngredientUp: () -> Unit) {
     var ingredientQuantity by remember {
-        mutableStateOf(ingredient.quantity)
+        mutableIntStateOf(ingredient.quantity)
     }
 
     Row(
@@ -137,20 +134,14 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: () -> Unit) {
         FloatingActionButton(
             modifier = Modifier
                 .size(36.dp),
-            onClick = {
-                if (ingredientQuantity > 1) {
-                    ingredientQuantity--
-                } else {
-                    onIngredientRemove()
-                }
-            }
+            onClick = {onIngredientDown()}
         ) {
             Text(text = "-")
         }
 
         // Tuotteen määrä
         Text(
-            text = "${ingredientQuantity}",
+            text = "${ingredient.quantity}",
             modifier = Modifier.padding(all = 8.dp)
         )
 
@@ -158,7 +149,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: () -> Unit) {
         FloatingActionButton(
             modifier = Modifier
                 .size(36.dp),
-            onClick = {ingredientQuantity++}
+            onClick = {onIngredientUp()}
         ) {
             Text(text = "+")
         }

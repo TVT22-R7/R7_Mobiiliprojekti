@@ -29,6 +29,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
+import android.net.Uri
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 
 var scale by mutableStateOf(1.0f)
 var isDarkMode by mutableStateOf(false)
@@ -50,6 +56,7 @@ fun SettingsScreen() {
     val mAuth = FirebaseAuth.getInstance()
     val currentUser = mAuth.currentUser
     val context = LocalContext.current
+    var licensesDialogShown by remember { mutableStateOf(false) }
 
     val darkModeEnabled = isDarkMode
 
@@ -61,18 +68,144 @@ fun SettingsScreen() {
         ) {
             Spacer(modifier = Modifier.height(32.dp))
             Text(
-                text = "Settings",color = if(darkModeEnabled) Color.White else Color.Black,
+                text = "Settings",
+                color = if(darkModeEnabled) Color.White else Color.Black,
                 textAlign = TextAlign.Center,
                 fontSize = 20.sp,
-                modifier = Modifier.padding(16.dp),
-
+                modifier = Modifier.padding(16.dp)
             )
-            ChangeColor()
-            RescaleButton()
+
+            if (licensesDialogShown) {
+                LicensesDialog(onDismissRequest = { licensesDialogShown = false  })
+            }
+
+
+            LicensesDropdown()
+
+
+            HUDSettingsDropdown()
+
             Spacer(modifier = Modifier.height(20.dp))
             Spacer(modifier = Modifier.height(300.dp))
-
             LogoutButton(context = context)
+            Spacer(modifier = Modifier.height(18.dp))
+            GoogleAccountButton()
+        }
+
+    }
+}
+@Composable
+fun LicensesDialog(onDismissRequest: () -> Unit) {
+    val context = LocalContext.current
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text(text = "Licenses") },
+        text = {
+            // Text content for the licenses dialog
+            Text(text = "This is where you can display the licenses information.")
+        },
+        confirmButton = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = {
+                        // Open license information in a new tab or browser window
+                        openLicenseInNewTab(context)
+                        onDismissRequest()
+                    },
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+                ) {
+                    Text(text = "Open in New Tab")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = onDismissRequest,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+                ) {
+                    Text(text = "Close")
+                }
+            }
+        }
+    )
+}
+private fun openLicenseInNewTab(context: Context) {
+    // Replace this URL with the actual URL of your license information
+    val licenseUrl = "https://example.com/licenses"
+
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(licenseUrl))
+    context.startActivity(intent)
+}
+@Composable
+fun HUDSettingsDropdown() {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Button(
+            onClick = { expanded = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "HUD settings")
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            DropdownMenuItem(onClick = {
+                toggleDarkMode()
+                expanded = false
+            }) {
+                Text(text = if (isDarkMode) "Light mode" else "Dark mode")
+            }
+
+            DropdownMenuItem(onClick = {
+                rescaleUI()
+                expanded = false
+            }) {
+                Text(text = "Increase UI")
+            }
+
+            DropdownMenuItem(onClick = {
+                resetScale()
+                expanded = false
+            }) {
+                Text(text = "Reset UI")
+            }
+        }
+    }
+}
+@Composable
+fun LicensesDropdown() {
+    var expanded by remember { mutableStateOf(false) }
+
+    Column {
+        Button(
+            onClick = { expanded = !expanded }, // Toggle the expanded state
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "Licenses")
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            // Add items for licenses here if needed
+            // Example:
+            DropdownMenuItem(onClick = {
+                // Handle license item click
+                expanded = false
+            }) {
+                Text(text = "License ")
+            }
+
+            DropdownMenuItem(onClick = {
+                // Handle license item click
+                expanded = false
+            }) {
+                Text(text = "License ")
+            }
         }
     }
 }
@@ -93,36 +226,35 @@ fun LogoutButton(context: Context) {
     }
 }
 
+
 @Composable
-fun ChangeColor() {
+fun GoogleAccountButton() {
+    val context = LocalContext.current
+
     Button(
-        onClick = { toggleDarkMode(); isDarkMode },
-        modifier = Modifier.height((32 * scale).dp)
+        onClick = { navigateToGoogleAccount(context) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 45.dp)
+            .height((32 * scale).dp)
             .width((150 * scale).dp)
     ) {
-        Text(text = if (isDarkMode) "Light mode" else "Dark mode")
+        Text(text = "Google Account")
     }
 }
-@Composable
-fun RescaleButton() {
-    Column {
-        Button(
-            onClick = { rescaleUI() },
-            modifier = Modifier.padding(8.dp)
-                .height((32 * scale).dp)
-                .width((150 * scale).dp)
-        ) {
-            Text(text = "Increase Size")
-        }
 
-        Button(
-            onClick = { resetScale() },
-            modifier = Modifier.padding(8.dp)
-                .height((32 * scale).dp)
-                .width((150 * scale).dp)
-        ) {
-            Text(text = "Reset Size")
-        }
+private fun navigateToGoogleAccount(context: Context) {
+    val mAuth = FirebaseAuth.getInstance()
+    val currentUser = mAuth.currentUser
+    currentUser?.let {
+        // Get the Google account URI
+        val googleAccountUri = Uri.parse("https://myaccount.google.com")
+
+        // Create an intent to view the Google account URI
+        val intent = Intent(Intent.ACTION_VIEW, googleAccountUri)
+
+        // Start the activity to view the Google account
+        context.startActivity(intent)
     }
 }
 

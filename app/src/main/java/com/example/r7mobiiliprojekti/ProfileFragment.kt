@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.Surface
@@ -41,8 +43,16 @@ fun ProfileScreen() {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 16.dp)
         )
-
+        Spacer(modifier = Modifier.height(200.dp))
+        SavedGroceryList(darkModeEnabled)
+    }
     }
 }
-}
 
+@Composable
+fun SavedGroceryList(darkModeEnabled: Boolean) {
+    Text(
+        text = "Saved Grocery lists: ",
+        color = if(darkModeEnabled) Color.White else Color.Black
+    )
+}

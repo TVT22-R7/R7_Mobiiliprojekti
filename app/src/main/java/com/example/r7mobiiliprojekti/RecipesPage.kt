@@ -35,7 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
 import coil.compose.rememberImagePainter
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
@@ -51,15 +55,52 @@ import kotlinx.coroutines.launch
 fun RecipesPage(viewModel: IngredientViewModel) {
     val recipeIngredientsList by viewModel.recipeIngredientsList
 
-    LazyColumn {
-        items(recipeIngredientsList) { ingredient ->
-            IngredientRow(ingredient = ingredient)
+    var ingredientList by remember {
+        mutableStateOf(emptyList<String>())
+    }
+
+    for (ingredient in recipeIngredientsList) {
+        ingredientList = ingredientList + ingredient.name
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
+    // saves recipe received from openai
+    var recipeText by remember {
+        mutableStateOf("")
+    }
+
+    var recipeVisible by remember {
+        mutableStateOf(false)
+    }
+
+    // Launches a coroutine to get openai response
+    val createRecipeOnClick: () -> Unit = {
+        coroutineScope.launch {
+            val ingredients = ingredientList.joinToString(separator = ", ")
+            recipeText = createMessage(ingredients)
+            recipeVisible = true
+            Log.d("chat message", ingredients)
         }
     }
 
-    // A button that generates a recipe using OpenAI, and shows the recipe to user
-    GenerateRecipeComponent()
+    Column(modifier = Modifier) {
+        LazyColumn {
+            items(recipeIngredientsList) { ingredient ->
+                IngredientRow(ingredient = ingredient)
+            }
+        }
+
+        // A button that generates a recipe using OpenAI, and shows the recipe to user
+        RecipeButton(onClick = createRecipeOnClick)
+    }
+
+    if (recipeVisible){
+        ResponseCard(text = recipeText, onClick = {recipeVisible = false})
+    }
 }
+
+
 @Composable
 fun IngredientRow(ingredient: Ingredient) {
     Row(
@@ -99,7 +140,7 @@ private suspend fun createMessage(request: String) : String{
     val chatMessages = mutableListOf(
         ChatMessage(
             role = ChatRole.System,
-            content = "You help users to come up with a recipe using ingredients they already have. You don't have to use every ingredient. You can add items to purchase. List only name and ingredients."
+            content = "You help users to come up with a recipe using ingredients they already have. You don't have to use every ingredient. You can add items to purchase. List only name, ingredients and instructions."
         ),
         ChatMessage(
             role = ChatRole.User,
@@ -116,44 +157,6 @@ private suspend fun createMessage(request: String) : String{
     val message = response.choices.first().message.content ?: "message not found"
     Log.d("chat message", message)
     return message
-}
-
-@Composable
-fun GenerateRecipeComponent() {
-    // Returns a scope that's cancelled when RecipeButton is removed from composition
-    val coroutineScope = rememberCoroutineScope()
-
-    // saves recipe received from openai
-    var recipeText by remember {
-        mutableStateOf("")
-    }
-
-    var recipeVisible by remember {
-        mutableStateOf(false)
-    }
-
-    var ingredientList by remember {
-        mutableStateOf(emptyList<String>())
-    }
-
-    // Launches a coroutine to get openai response
-    val createRecipeOnClick: () -> Unit = {
-        coroutineScope.launch {
-            ingredientList = ingredientList + "banana" + "cinnamon"
-            val ingredients = ingredientList.joinToString(separator = ", ")
-            recipeText = createMessage(ingredients)
-            recipeVisible = true
-            Log.d("chat message", ingredients)
-        }
-    }
-
-
-
-    RecipeButton(onClick = createRecipeOnClick)
-
-    if (recipeVisible){
-        ResponseCard(text = recipeText, onClick = {recipeVisible = false})
-    }
 }
 
 @Composable
@@ -177,29 +180,45 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
             modifier = Modifier
                 .width(screenWidth - 50.dp)
                 .height(screenHeight - 100.dp)
-                .align(Alignment.Center),
+                .align(Alignment.Center)
+                .padding(all = 16.dp),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )
         ) {
-            Text(
-                modifier = Modifier
-                    .padding(all = 16.dp),
-                text = text,
-                style = MaterialTheme.typography.headlineMedium,
-                fontSize = 16.sp,
-            )
+            Column {
+                Text(
+                    modifier = Modifier
+                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 48.dp)
+                        .verticalScroll(rememberScrollState()),
+                    text = text,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontSize = 16.sp,
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Row (
+                    verticalAlignment = Alignment.Bottom,
+                ) {
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Button(
+                        modifier = Modifier
+                            .padding(end = 36.dp, bottom = 16.dp),
+                        onClick = onClick
+                    ) {
+                        Text(
+                            text = "Close"
+                        )
+                    }
+                }
+            }
+
+
         }
-        Button(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 36.dp, bottom = 36.dp),
-            onClick = onClick
-        ) {
-            Text(
-                text = "Close"
-            )
-        }
+
     }
 }
 
@@ -233,7 +252,5 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    ResponseCard(text = "hello") {
-        
-    }
+    ResponseCard(text = "hello", {})
 }

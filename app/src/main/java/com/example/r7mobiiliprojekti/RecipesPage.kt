@@ -88,12 +88,9 @@ fun RecipesPage(viewModel: IngredientViewModel) {
     }
 
     Column(modifier = Modifier) {
-        LazyColumn {
-            items(recipeIngredientsList) { ingredient ->
-                IngredientRow(ingredient = ingredient, onIngredientDown = {viewModel.removeFromRecipe(ingredient)})
-            }
+        recipeIngredientsList.forEach { ingredient ->
+            IngredientRow(ingredient = ingredient, onIngredientDown = {viewModel.removeFromRecipe(ingredient)}, onIngredientUp = {viewModel.addToRecipe(ingredient)})
         }
-
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(onClick = createRecipeOnClick)
     }
@@ -105,10 +102,9 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
 
 @Composable
-fun IngredientRow(ingredient: Ingredient, onIngredientDown: () -> Unit, onIngredientUp: () -> Unit) {
-    var ingredientQuantity by remember {
-        mutableIntStateOf(ingredient.quantity)
-    }
+fun IngredientRow(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
+
+    val ingredientQuantity = remember { mutableIntStateOf(ingredient.quantity) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -134,14 +130,17 @@ fun IngredientRow(ingredient: Ingredient, onIngredientDown: () -> Unit, onIngred
         FloatingActionButton(
             modifier = Modifier
                 .size(36.dp),
-            onClick = {onIngredientDown()}
+            onClick = {
+                onIngredientDown(ingredient)
+                ingredientQuantity.intValue--
+            }
         ) {
             Text(text = "-")
         }
 
         // Tuotteen määrä
         Text(
-            text = "${ingredient.quantity}",
+            text = "${ingredientQuantity.intValue}",
             modifier = Modifier.padding(all = 8.dp)
         )
 
@@ -149,7 +148,10 @@ fun IngredientRow(ingredient: Ingredient, onIngredientDown: () -> Unit, onIngred
         FloatingActionButton(
             modifier = Modifier
                 .size(36.dp),
-            onClick = {onIngredientUp()}
+            onClick = {
+                onIngredientUp(ingredient)
+                ingredientQuantity.intValue++
+            }
         ) {
             Text(text = "+")
         }
@@ -280,5 +282,5 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {})
+    IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, {})
 }

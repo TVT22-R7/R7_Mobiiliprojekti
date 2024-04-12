@@ -42,6 +42,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.sp
@@ -56,7 +57,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun RecipesPage(viewModel: IngredientViewModel) {
-    val recipeIngredientsList by viewModel.recipeIngredientsList
+    val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
 
     var ingredientList by remember {
         mutableStateOf(emptyList<String>())
@@ -89,7 +90,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
     Column(modifier = Modifier) {
         recipeIngredientsList.forEach { ingredient ->
-            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.removeFromRecipe(ingredient)})
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(onClick = createRecipeOnClick)
@@ -122,6 +123,8 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
         )
 
         Spacer(modifier = Modifier.weight(1f))
+        
+        Text(text = ingredient.quantity.toString())
 
         // Poista tuote
         FloatingActionButton(

@@ -102,6 +102,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
 
 @Composable
+fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)

@@ -90,7 +90,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
     Column(modifier = Modifier) {
         recipeIngredientsList.forEach { ingredient ->
-            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.removeFromRecipe(ingredient)})
+            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(onClick = createRecipeOnClick)
@@ -124,8 +124,6 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
 
         Spacer(modifier = Modifier.weight(1f))
         
-        Text(text = ingredient.quantity.toString())
-
         // Poista tuote
         FloatingActionButton(
             modifier = Modifier

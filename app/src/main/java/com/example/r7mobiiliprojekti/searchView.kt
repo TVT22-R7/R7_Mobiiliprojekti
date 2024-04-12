@@ -53,6 +53,13 @@ class IngredientViewModel : ViewModel() {
             }
         }
     }
+
+    fun deleteFromRecipe(ingredient: Ingredient) {
+        updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) {
+            recipeIngredients.remove(ingredient.name)
+        }
+    }
+
     fun addToList(ingredient: Ingredient) {
         updateIngredientList(shoppingListIngredients, shoppingListIngredientsList, ingredient) { it.quantity++ }
     }

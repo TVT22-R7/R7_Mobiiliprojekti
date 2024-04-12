@@ -89,7 +89,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
     Column(modifier = Modifier) {
         recipeIngredientsList.forEach { ingredient ->
-            IngredientRow(ingredient = ingredient, onIngredientDown = {viewModel.removeFromRecipe(ingredient)}, onIngredientUp = {viewModel.addToRecipe(ingredient)})
+            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(onClick = createRecipeOnClick)
@@ -102,10 +102,6 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
 
 @Composable
-fun IngredientRow(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
-
-    val ingredientQuantity = remember { mutableIntStateOf(ingredient.quantity) }
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -126,36 +122,16 @@ fun IngredientRow(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Vähennä tuotteen määrää
+        // Poista tuote
         FloatingActionButton(
             modifier = Modifier
-                .size(36.dp),
+                .size(width = 72.dp,height = 36.dp),
             onClick = {
-                onIngredientDown(ingredient)
-                ingredientQuantity.intValue--
+                onIngredientRemove(ingredient)
             }
         ) {
-            Text(text = "-")
+            Text(text = "Remove")
         }
-
-        // Tuotteen määrä
-        Text(
-            text = "${ingredientQuantity.intValue}",
-            modifier = Modifier.padding(all = 8.dp)
-        )
-
-        // Lisää tuotteen määrää
-        FloatingActionButton(
-            modifier = Modifier
-                .size(36.dp),
-            onClick = {
-                onIngredientUp(ingredient)
-                ingredientQuantity.intValue++
-            }
-        ) {
-            Text(text = "+")
-        }
-
     }
 }
 
@@ -282,5 +258,5 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, {})
+    // IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, beef{})
 }

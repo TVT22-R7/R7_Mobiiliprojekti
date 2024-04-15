@@ -1,8 +1,5 @@
 package com.example.r7mobiiliprojekti
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,7 +28,7 @@ class Website : ComponentActivity() {
 @Composable
 fun GroceriesView() {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
-    var products by remember { mutableStateOf(listOf("")) }
+    var products by remember { mutableStateOf(listOf<String>()) }
 
     Column(
         modifier = Modifier
@@ -61,10 +58,12 @@ fun FoodList(products: List<String>) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         products.forEach { product ->
-            ProductItem(product = product)
+            IngredientRow(ingredient = Ingredient(name = product, imageUrl = ""), onIngredientRemove = {products})
         }
     }
 }
+
+
 
 @Composable
 fun ProductItem(product: String) {

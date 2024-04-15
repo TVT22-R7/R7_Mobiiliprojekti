@@ -33,14 +33,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 // Luodaan ViewModel
 class IngredientViewModel : ViewModel() {
     private val recipeIngredients = mutableStateMapOf<String, Ingredient>()
     private val shoppingListIngredients = mutableStateMapOf<String, Ingredient>()
 
-    val recipeIngredientsList: MutableState<List<Ingredient>> = mutableStateOf(recipeIngredients.values.toList())
-    val shoppingListIngredientsList: MutableState<List<Ingredient>> = mutableStateOf(shoppingListIngredients.values.toList())
+    val recipeIngredientsList = MutableStateFlow(recipeIngredients.values.toList())
+    val shoppingListIngredientsList = MutableStateFlow(shoppingListIngredients.values.toList())
     fun addToRecipe(ingredient: Ingredient) {
         updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) { it.quantity++ }
     }
@@ -53,6 +54,13 @@ class IngredientViewModel : ViewModel() {
             }
         }
     }
+
+    fun deleteFromRecipe(ingredient: Ingredient) {
+        updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) {
+            recipeIngredients.remove(ingredient.name)
+        }
+    }
+
     fun addToList(ingredient: Ingredient) {
         updateIngredientList(shoppingListIngredients, shoppingListIngredientsList, ingredient) { it.quantity++ }
     }
@@ -67,7 +75,7 @@ class IngredientViewModel : ViewModel() {
     }
     private fun updateIngredientList(
         ingredientsMap: MutableMap<String, Ingredient>,
-        ingredientsList: MutableState<List<Ingredient>>,
+        ingredientsList: MutableStateFlow<List<Ingredient>>,
         ingredient: Ingredient,
         updateQuantity: (Ingredient) -> Unit
     ) {

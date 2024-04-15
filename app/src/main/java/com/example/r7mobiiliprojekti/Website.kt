@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
+/*
 class Website : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,9 +26,10 @@ class Website : ComponentActivity() {
         }
     }
 }
+ */
 
 @Composable
-fun MainContent() {
+fun GroceriesView() {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
     var products by remember { mutableStateOf(listOf("")) }
 

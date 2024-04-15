@@ -44,15 +44,10 @@ fun ProfileScreen() {
             modifier = Modifier.padding(bottom = 16.dp)
         )
         Spacer(modifier = Modifier.height(200.dp))
-        SavedGroceryList(darkModeEnabled)
+
     }
     }
 }
 
-@Composable
-fun SavedGroceryList(darkModeEnabled: Boolean) {
-    Text(
-        text = "Saved Grocery lists: ",
-        color = if(darkModeEnabled) Color.White else Color.Black
-    )
-}
+
+

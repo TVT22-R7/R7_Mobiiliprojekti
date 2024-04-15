@@ -2,8 +2,11 @@ package com.example.r7mobiiliprojekti
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,11 +33,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import android.net.Uri
+import android.util.Log
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
+import com.google.firebase.database.FirebaseDatabase
 
 var scale by mutableStateOf(1.0f)
 var isDarkMode by mutableStateOf(false)
@@ -56,7 +63,12 @@ fun SettingsScreen() {
     val mAuth = FirebaseAuth.getInstance()
     val currentUser = mAuth.currentUser
     val context = LocalContext.current
+    val configuration = context.resources.configuration
     var licensesDialogShown by remember { mutableStateOf(false) }
+    when (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
+        Configuration.UI_MODE_NIGHT_NO -> {} // Night mode is not active, we're using the light theme.
+        Configuration.UI_MODE_NIGHT_YES -> {} // Night mode is active, we're using dark theme.
+    }
 
     val darkModeEnabled = isDarkMode
 
@@ -86,7 +98,10 @@ fun SettingsScreen() {
             HUDSettingsDropdown()
 
             Spacer(modifier = Modifier.height(20.dp))
-            Spacer(modifier = Modifier.height(300.dp))
+            ToggleDarkModeButton()
+            Spacer(modifier = Modifier.height(250.dp))
+            PremiumButton()
+            Spacer(modifier = Modifier.height(20.dp))
             LogoutButton(context = context)
             Spacer(modifier = Modifier.height(18.dp))
             GoogleAccountButton()
@@ -101,14 +116,14 @@ fun LicensesDialog(onDismissRequest: () -> Unit) {
         onDismissRequest = onDismissRequest,
         title = { Text(text = "Licenses") },
         text = {
-            // Text content for the licenses dialog
+
             Text(text = "This is where you can display the licenses information.")
         },
         confirmButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
-                        // Open license information in a new tab or browser window
+
                         openLicenseInNewTab(context)
                         onDismissRequest()
                     },
@@ -127,9 +142,9 @@ fun LicensesDialog(onDismissRequest: () -> Unit) {
         }
     )
 }
+
 private fun openLicenseInNewTab(context: Context) {
-    // Replace this URL with the actual URL of your license information
-    val licenseUrl = "https://example.com/licenses"
+    val licenseUrl = ""
 
     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(licenseUrl))
     context.startActivity(intent)
@@ -175,12 +190,33 @@ fun HUDSettingsDropdown() {
     }
 }
 @Composable
+fun ToggleDarkModeButton() {
+    val context = LocalContext.current
+    val isNightMode = isSystemInDarkTheme()
+
+    Button(
+        onClick = {
+            if (isNightMode) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            }
+            (context as? Activity)?.recreate()
+        },
+        modifier = Modifier
+            .height(32.dp)
+            .width(150.dp)
+    ) {
+        Text(text = if (isNightMode) "Light Mode" else "Dark Mode", fontSize = 14.sp)
+    }
+}
+@Composable
 fun LicensesDropdown() {
     var expanded by remember { mutableStateOf(false) }
 
     Column {
         Button(
-            onClick = { expanded = !expanded }, // Toggle the expanded state
+            onClick = { expanded = !expanded },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = "Licenses")
@@ -191,17 +227,16 @@ fun LicensesDropdown() {
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Add items for licenses here if needed
-            // Example:
+
             DropdownMenuItem(onClick = {
-                // Handle license item click
+
                 expanded = false
             }) {
                 Text(text = "License ")
             }
 
             DropdownMenuItem(onClick = {
-                // Handle license item click
+
                 expanded = false
             }) {
                 Text(text = "License ")
@@ -225,7 +260,20 @@ fun LogoutButton(context: Context) {
         Text(text = "Logout")
     }
 }
+@Composable
+fun PremiumButton(){
 
+    Button(
+        onClick = { GiveUserPremium(premium = true) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 45.dp)
+            .height((32 * scale).dp)
+            .width((150 * scale).dp)
+    ) {
+        Text(text = "Premium")
+    }
+}
 
 @Composable
 fun GoogleAccountButton() {
@@ -242,15 +290,27 @@ fun GoogleAccountButton() {
         Text(text = "Google Account")
     }
 }
+private fun GiveUserPremium(premium:Boolean){
+    val database = FirebaseDatabase.getInstance("https://r7-mobiiliprojekti-default-rtdb.europe-west1.firebasedatabase.app").reference
+    val usersRef = database.child("users")
+
+    val userId = UserAccountManager.googleAccountId
+
+    userId?.let {
+        usersRef.child(it).child("premium").setValue(premium)
+    }
+}
+
 
 private fun navigateToGoogleAccount(context: Context) {
     val mAuth = FirebaseAuth.getInstance()
     val currentUser = mAuth.currentUser
+    Log.d(TAG, "current user =  $currentUser")
     currentUser?.let {
         // Get the Google account URI
         val googleAccountUri = Uri.parse("https://myaccount.google.com")
 
-        // Create an intent to view the Google account URI
+
         val intent = Intent(Intent.ACTION_VIEW, googleAccountUri)
 
         // Start the activity to view the Google account

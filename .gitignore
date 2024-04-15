@@ -12,4 +12,6 @@
 /captures
 .externalNativeBuild
 .cxx
+secrets.properties
 local.properties
+secrets.properties

@@ -195,7 +195,7 @@ fun MainContent() {
 
 @Composable
 fun GroceryList() {
-    //ostoslista tiedoston composable
+    GroceriesView()
 }
 
 @Composable

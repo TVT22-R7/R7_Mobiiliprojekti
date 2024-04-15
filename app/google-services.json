@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "396868945373",
+    "project_id": "r7-mobiiliprojekti",
+    "storage_bucket": "r7-mobiiliprojekti.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:396868945373:android:a3fa35158e17e041a9a234",
+        "android_client_info": {
+          "package_name": "com.example.r7mobiiliprojekti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "396868945373-lk20e723a0mr1e0qns118alubbqtgnpd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.r7mobiiliprojekti",
+            "certificate_hash": "ee40e8d78df1610072d275bbf73e5957aaf3f17a"
+          }
+        },
+        {
+          "client_id": "396868945373-s7qso6aovgu78c8bhvnrm00lv3bdgei8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.r7mobiiliprojekti",
+            "certificate_hash": "e82d218be7dd6a9a78fce462a728835cd55decb9"
+          }
+        },
+        {
+          "client_id": "396868945373-3miciloip98prahafck03nl8lsd696q9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmB8BPyloKCycpHWQxl4J8ruAo2Zp6BV8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "396868945373-3miciloip98prahafck03nl8lsd696q9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

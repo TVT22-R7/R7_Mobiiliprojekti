@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -27,7 +29,7 @@ class Website : ComponentActivity() {
 @Composable
 fun MainContent() {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
-    var products by remember { mutableStateOf(listOf("Juice", "Bread", "Fruits", "Rice")) }
+    var products by remember { mutableStateOf(listOf("")) }
 
     Column(
         modifier = Modifier
@@ -83,18 +85,10 @@ fun SearchField(
     onSearch: (TextFieldValue) -> Unit
 ) {
     OutlinedTextField(
-        modifier = modifier,
         value = value,
         onValueChange = onValueChange,
-        label = {"Search for products"},
-        onImeActionPerformed = { action: ImeAction, controller: TextFieldValue ->
-            if (action == ImeAction.Search) {
-                onSearch(controller)
-            }
-        }
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = {onSearch(value)})
     )
 }
 
-fun OutlinedTextField(modifier: Modifier, value: TextFieldValue, onValueChange: (TextFieldValue) -> Unit, label: () -> String, onImeActionPerformed: (ImeAction, TextFieldValue) -> Unit) {
 
-}

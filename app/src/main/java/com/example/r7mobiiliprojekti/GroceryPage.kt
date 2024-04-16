@@ -62,9 +62,6 @@ fun GroceriesView(viewModel: IngredientViewModel) {
 
 @Composable
 fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
-
-    val ingredientQuantity = remember { mutableIntStateOf(ingredient.quantityForList) }
-
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -91,7 +88,6 @@ fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient
                 .size(36.dp),
             onClick = {
                 onIngredientDown(ingredient)
-                ingredientQuantity.intValue--
             }
         ) {
             Text(text = "-")
@@ -99,7 +95,7 @@ fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient
 
         // Tuotteen määrä
         Text(
-            text = "${ingredientQuantity.intValue}",
+            text = "${ingredient.quantityForList}",
             modifier = Modifier.padding(all = 8.dp)
         )
 
@@ -109,7 +105,6 @@ fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient
                 .size(36.dp),
             onClick = {
                 onIngredientUp(ingredient)
-                ingredientQuantity.intValue++
             }
         ) {
             Text(text = "+")

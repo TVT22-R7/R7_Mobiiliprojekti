@@ -173,7 +173,7 @@ fun MainContent() {
                 Profile()
             }
             composable(BottomNavigationScreens.GroceryList.route) {
-                GroceryList()
+                GroceryList(viewModel = viewModel)
             }
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesPage(viewModel = viewModel)
@@ -194,8 +194,8 @@ fun MainContent() {
 }
 
 @Composable
-fun GroceryList() {
-    GroceriesView()
+fun GroceryList(viewModel: IngredientViewModel) {
+    GroceriesView(viewModel = viewModel)
 }
 
 @Composable

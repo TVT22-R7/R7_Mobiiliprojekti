@@ -26,13 +26,8 @@ import coil.compose.rememberImagePainter
 @Composable
 fun GroceriesView(viewModel: IngredientViewModel) {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
-    var products by remember { mutableStateOf(listOf<String>()) }
 
-    fun onIngredientRemove(product: String) {
-        products = products - product
-    }
     val shoppingListIngredientsList = viewModel.groceryListIngredientsList.collectAsState().value
-    val context = LocalContext.current
     var ingredientList by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -46,7 +41,6 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        FoodList(products, onIngredientRemove = {product -> onIngredientRemove(product)})
 
         Spacer(modifier = Modifier.height(16.dp))
         shoppingListIngredientsList.forEach { ingredient ->
@@ -59,25 +53,9 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             modifier = Modifier.fillMaxWidth(),
             onValueChange = { searchValue = it },
             value = searchValue,
-            onSearch = { newValue ->
-                products = products + newValue.text
-                searchValue = TextFieldValue()
+            onSearch = { product -> viewModel.addToList(Ingredient(name = product.text, imageUrl = ""))
             }
         )
-    }
-}
-
-@Composable
-fun FoodList(products: List<String>, onIngredientRemove: (String) -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        products.forEach { product ->
-            IngredientRow(
-                ingredient = Ingredient(name = product, imageUrl = ""),
-                onIngredientRemove = { onIngredientRemove(product) })
-        }
     }
 }
 
@@ -119,39 +97,8 @@ fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -
         }
     }
 }
-@Composable
-fun FoodList(products: List<String>) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)
-    ) {
-        // Placeholder
-        Box(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
-        )
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            products.forEach { product ->
-                ProductItem(product = product)
-            }
-        }
-        Spacer(modifier = Modifier.weight(1f))
-    }
-}
 
 
-
-@Composable
-fun ProductItem(product: String) {
-    Text(
-        text = product,
-        modifier = Modifier.padding(start = 8.dp)
-    )
-}
 
 @Composable
 fun SearchField(

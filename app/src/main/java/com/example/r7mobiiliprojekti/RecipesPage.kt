@@ -1,5 +1,7 @@
 package com.example.r7mobiiliprojekti
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
@@ -45,6 +47,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
@@ -58,7 +61,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RecipesPage(viewModel: IngredientViewModel) {
     val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
-
+    val context = LocalContext.current
     var ingredientList by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -82,7 +85,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
     val createRecipeOnClick: () -> Unit = {
         coroutineScope.launch {
             val ingredients = ingredientList.joinToString(separator = ", ")
-            recipeText = createMessage(ingredients)
+            recipeText = createMessage(ingredients, context)
             recipeVisible = true
             Log.d("chat message", ingredients)
         }
@@ -123,7 +126,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
         )
 
         Spacer(modifier = Modifier.weight(1f))
-        
+
         // Poista tuote
         FloatingActionButton(
             modifier = Modifier
@@ -138,7 +141,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
 }
 
 // Creates openai bot, sends a request and returns the answer
-private suspend fun createMessage(request: String) : String{
+private suspend fun createMessage(request: String, context: Context) : String{
     val openAI = OpenAI(
         token = BuildConfig.OPENAI_API_KEY
     )
@@ -164,6 +167,7 @@ private suspend fun createMessage(request: String) : String{
     val response = openAI.chatCompletion(completionRequest)
     val message = response.choices.first().message.content ?: "message not found"
     Log.d("chat message", message)
+    RecipePreferences.saveRecipe(context, message)
     return message
 }
 
@@ -262,3 +266,31 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 private fun ItemCardPreview() {
     // IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, beef{})
 }
+object RecipePreferences {
+    private const val PREFS_NAME = "RecipePreferences"
+    private const val KEY_RECIPES = "recipes"
+
+    fun saveRecipe(context: Context, recipe: String) {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val recipes = getRecipes(context).toMutableList()
+        recipes.add(recipe)
+        val editor = sharedPreferences.edit()
+        editor.putStringSet(KEY_RECIPES, recipes.toSet())
+        editor.apply()
+    }
+
+    fun getRecipes(context: Context): List<String> {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getStringSet(KEY_RECIPES, emptySet())?.toList() ?: emptyList()
+    }
+
+    fun removeRecipe(context: Context, recipe: String) {
+        val sharedPreferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val recipes = getRecipes(context).toMutableList()
+        recipes.remove(recipe)
+        val editor = sharedPreferences.edit()
+        editor.putStringSet(KEY_RECIPES, recipes.toSet())
+        editor.apply()
+    }
+}
+

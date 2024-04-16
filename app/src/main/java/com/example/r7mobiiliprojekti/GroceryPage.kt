@@ -30,12 +30,16 @@ fun GroceriesView() {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
     var products by remember { mutableStateOf(listOf<String>()) }
 
+    fun onIngredientRemove(product: String){
+        products = products - product
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        FoodList(products)
+        FoodList(products, onIngredientRemove = {product -> onIngredientRemove(product)})
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -52,13 +56,13 @@ fun GroceriesView() {
 }
 
 @Composable
-fun FoodList(products: List<String>) {
+fun FoodList(products: List<String>, onIngredientRemove: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         products.forEach { product ->
-            IngredientRow(ingredient = Ingredient(name = product, imageUrl = ""), onIngredientRemove = {products})
+            IngredientRow(ingredient = Ingredient(name = product, imageUrl = ""), onIngredientRemove = {onIngredientRemove(product)})
         }
     }
 }

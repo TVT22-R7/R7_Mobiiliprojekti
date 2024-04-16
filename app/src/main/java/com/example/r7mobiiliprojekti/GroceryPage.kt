@@ -44,9 +44,10 @@ fun GroceriesView(viewModel: IngredientViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
         shoppingListIngredientsList.forEach { ingredient ->
-            IngredientListRow(
+            IngredientRowWithCount(
                 ingredient = ingredient,
-                onIngredientRemove = { viewModel.deleteFromList(ingredient) }
+                onIngredientDown = { viewModel.removeFromList(ingredient) },
+                onIngredientUp = { viewModel.addToList(ingredient) }
             )
         }
         SearchField(
@@ -56,6 +57,64 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             onSearch = { product -> viewModel.addToList(Ingredient(name = product.text, imageUrl = ""))
             }
         )
+    }
+}
+
+@Composable
+fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
+
+    val ingredientQuantity = remember { mutableIntStateOf(ingredient.quantityForList) }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        // Tuotteen kuva
+        Image(
+            painter = rememberImagePainter(ingredient.imageUrl),
+            contentDescription = null,
+            modifier = Modifier
+                .size(50.dp)
+                .clip(shape = RoundedCornerShape(8.dp))
+        )
+        // Tuotteen nimi
+        Text(
+            text = ingredient.name,
+            modifier = Modifier.padding(start = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Vähennä tuotteen määrää
+        FloatingActionButton(
+            modifier = Modifier
+                .size(36.dp),
+            onClick = {
+                onIngredientDown(ingredient)
+                ingredientQuantity.intValue--
+            }
+        ) {
+            Text(text = "-")
+        }
+
+        // Tuotteen määrä
+        Text(
+            text = "${ingredientQuantity.intValue}",
+            modifier = Modifier.padding(all = 8.dp)
+        )
+
+        // Lisää tuotteen määrää
+        FloatingActionButton(
+            modifier = Modifier
+                .size(36.dp),
+            onClick = {
+                onIngredientUp(ingredient)
+                ingredientQuantity.intValue++
+            }
+        ) {
+            Text(text = "+")
+        }
+
     }
 }
 

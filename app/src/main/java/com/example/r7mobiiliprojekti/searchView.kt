@@ -32,42 +32,55 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 
 // Luodaan ViewModel
 class IngredientViewModel : ViewModel() {
     private val recipeIngredients = mutableStateMapOf<String, Ingredient>()
-    private val shoppingListIngredients = mutableStateMapOf<String, Ingredient>()
+    private val groceryListIngredients = mutableStateMapOf<String, Ingredient>()
 
-    val recipeIngredientsList: MutableState<List<Ingredient>> = mutableStateOf(recipeIngredients.values.toList())
-    val shoppingListIngredientsList: MutableState<List<Ingredient>> = mutableStateOf(shoppingListIngredients.values.toList())
+    val recipeIngredientsList = MutableStateFlow(recipeIngredients.values.toList())
+    val groceryListIngredientsList = MutableStateFlow(groceryListIngredients.values.toList())
     fun addToRecipe(ingredient: Ingredient) {
-        updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) { it.quantity++ }
+        updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) { it.quantityForRecipe++ }
     }
     fun removeFromRecipe(ingredient: Ingredient) {
         updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) {
-            if (it.quantity > 1) {
-                it.quantity--
+            if (it.quantityForRecipe > 1) {
+                it.quantityForRecipe--
             } else {
                 recipeIngredients.remove(ingredient.name)
             }
         }
     }
+
+    fun deleteFromRecipe(ingredient: Ingredient) {
+        updateIngredientList(recipeIngredients, recipeIngredientsList, ingredient) {
+            recipeIngredients.remove(ingredient.name)
+        }
+    }
+    fun deleteFromList(ingredient: Ingredient) {
+        updateIngredientList(groceryListIngredients, groceryListIngredientsList, ingredient) {
+            groceryListIngredients.remove(ingredient.name)
+        }
+    }
     fun addToList(ingredient: Ingredient) {
-        updateIngredientList(shoppingListIngredients, shoppingListIngredientsList, ingredient) { it.quantity++ }
+        updateIngredientList(groceryListIngredients, groceryListIngredientsList, ingredient) { it.quantityForList++ }
     }
     fun removeFromList(ingredient: Ingredient) {
-        updateIngredientList(shoppingListIngredients, shoppingListIngredientsList, ingredient) {
-            if (it.quantity > 1) {
-                it.quantity--
+        updateIngredientList(groceryListIngredients, groceryListIngredientsList, ingredient) {
+            if (it.quantityForList > 1) {
+                it.quantityForList--
             } else {
-                shoppingListIngredients.remove(ingredient.name)
+                groceryListIngredients.remove(ingredient.name)
             }
         }
     }
     private fun updateIngredientList(
         ingredientsMap: MutableMap<String, Ingredient>,
-        ingredientsList: MutableState<List<Ingredient>>,
+        ingredientsList: MutableStateFlow<List<Ingredient>>,
         ingredient: Ingredient,
         updateQuantity: (Ingredient) -> Unit
     ) {
@@ -75,17 +88,18 @@ class IngredientViewModel : ViewModel() {
         if (existingIngredient != null) {
             updateQuantity(existingIngredient)
         } else {
-            ingredient.quantity = 1
-            ingredientsMap[ingredient.name] = ingredient
+            val newIngredient = ingredient.copy()
+            ingredientsMap[ingredient.name] = newIngredient
+            updateQuantity(newIngredient)
         }
         ingredientsList.value = ingredientsMap.values.toList()
     }
 }
-
 data class Ingredient(
     val name: String,
     val imageUrl: String,
-    var quantity: Int = 0
+    var quantityForList: Int = 0,
+    var quantityForRecipe: Int = 0
 )
 // Hakunäkymä
 @Composable
@@ -165,18 +179,29 @@ fun IngredientItem(
     onRemoveFromRecipeClick: () -> Unit,
     onRemoveFromListClick: () -> Unit
 ) {
-    val quantityForRecipeState = remember { mutableStateOf(ingredient.quantity) }
-    val quantityForListState = remember { mutableStateOf(ingredient.quantity) }
+    val quantityForRecipeState = remember { mutableStateOf(ingredient.quantityForRecipe) }
+    val quantityForListState = remember { mutableStateOf(ingredient.quantityForList) }
+
+    LaunchedEffect(ingredient.quantityForRecipe, ingredient.quantityForList) {
+        quantityForRecipeState.value = ingredient.quantityForRecipe
+        quantityForListState.value = ingredient.quantityForList
+    }
+    LaunchedEffect(ingredient) {
+        quantityForRecipeState.value = ingredient.quantityForRecipe
+        quantityForListState.value = ingredient.quantityForList
+    }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 4.dp)
+            .size(90.dp),
         elevation = 0.dp,
         shape = RoundedCornerShape(8.dp),
     ) {
         Row(
             modifier = Modifier
+                .aspectRatio(1f)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -202,88 +227,75 @@ fun IngredientItem(
                     .weight(1f)
                     .padding(start = 16.dp)
             ) {
-                Text(text = ingredient.name)
+                Text(
+                    text = ingredient.name,
+                    maxLines = 1
+                )
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Ainesosan määrä (Reseptiin lisääminen)
-                if (quantityForRecipeState.value > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedButton(
-                            modifier = Modifier.size(36.dp),
-                            onClick = {
-                                if (quantityForRecipeState.value > 0) {
-                                    quantityForRecipeState.value--
-                                    onRemoveFromRecipeClick()
+                Row {
+
+                    // Ainesosan määrä (Listalle lisääminen)
+                    if (quantityForListState.value > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            OutlinedButton(
+                                modifier = Modifier.size(40.dp),
+                                onClick = {
+                                    if (quantityForListState.value > 0) {
+                                        quantityForListState.value--
+                                        onRemoveFromListClick()
+                                    }
                                 }
+                            ) {
+                                Text(text = "-")
                             }
-                        ) {
-                            Text(text = "-")
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = quantityForListState.value.toString())
+                            Spacer(modifier = Modifier.width(8.dp))
+                            OutlinedButton(
+                                modifier = Modifier.size(40.dp),
+                                onClick = {
+                                    quantityForListState.value++
+                                    onAddToListClick()
+                                },
+                            ) {
+                                Text(text = "+")
+                            }
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = quantityForRecipeState.value.toString())
-                        Spacer(modifier = Modifier.width(8.dp))
+                    } else {
                         OutlinedButton(
-                            modifier = Modifier.size(36.dp),
                             onClick = {
-                                quantityForRecipeState.value++
-                                onAddToRecipeClick()
+                                onAddToListClick()
+                                quantityForListState.value++
                             },
+                            modifier = Modifier
+                                .width(100.dp)
+                                .height(36.dp),
+                            elevation = ButtonDefaults.elevation(0.dp)
                         ) {
-                            Text(text = "+")
+                            Text(
+                                text = "Add to List",
+                                fontSize = 8.sp
+                            )
                         }
                     }
-                } else {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    // Ainesosan reseptiin lisääminen
+                    var buttonClicked by remember { mutableStateOf(false) }
                     OutlinedButton(
                         onClick = {
                             onAddToRecipeClick()
-                            quantityForRecipeState.value++
+                            buttonClicked = true
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(36.dp),
                         elevation = ButtonDefaults.elevation(0.dp)
                     ) {
-                        Text("Add to Recipes")
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Ainesosan määrä (Listalle lisääminen)
-                if (quantityForListState.value > 0) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        OutlinedButton(
-                            modifier = Modifier.size(36.dp),
-                            onClick = {
-                                if (quantityForListState.value > 0) {
-                                    quantityForListState.value--
-                                    onRemoveFromListClick()
-                                }
-                            }
-                        ) {
-                            Text(text = "-")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = quantityForListState.value.toString())
-                        Spacer(modifier = Modifier.width(8.dp))
-                        OutlinedButton(
-                            modifier = Modifier.size(36.dp),
-                            onClick = {
-                                quantityForListState.value++
-                                onAddToListClick()
-                            },
-                        ) {
-                            Text(text = "+")
-                        }
-                    }
-                } else {
-                    OutlinedButton(
-                        onClick = {
-                            onAddToListClick()
-                            quantityForListState.value++
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        elevation = ButtonDefaults.elevation(0.dp)
-                    ) {
-                        Text("Add to List")
+                        Text(
+                            text = if (buttonClicked) "Added!" else "Add to Recipes",
+                            fontSize = 8.sp
+                        )
                     }
                 }
             }
@@ -291,7 +303,7 @@ fun IngredientItem(
     }
 }
 
-private fun searchIngredients(query: String, appId: String, appKey: String, onResult: (List<Ingredient>) -> Unit) {
+fun searchIngredients(query: String, appId: String, appKey: String, onResult: (List<Ingredient>) -> Unit) {
     val apiUrl = "https://api.edamam.com/api/food-database/v2/parser?app_id=$appId&app_key=$appKey&ingr=$query"
     val url = URL(apiUrl)
     CoroutineScope(Dispatchers.IO).launch {

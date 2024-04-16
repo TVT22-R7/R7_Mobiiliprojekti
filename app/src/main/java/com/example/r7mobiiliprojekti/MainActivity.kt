@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material3.*
@@ -27,14 +26,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
-
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
-
 
 
 class MainActivity : ComponentActivity() {
@@ -154,7 +148,7 @@ fun MainContent() {
                             }
                         },
 
-                        label = { Text(stringResource(screen.resourceId), fontSize = 12.sp * scale) },
+                        label = { Text(stringResource(screen.resourceId)) },
                         icon = {
                             when (screen) {
                                 //iconien asettelut, joista mennään näkymiin
@@ -163,10 +157,11 @@ fun MainContent() {
                                 is BottomNavigationScreens.Recipes -> Icon(Icons.Filled.Menu, contentDescription = null)
                                 is BottomNavigationScreens.Settings -> Icon(Icons.Filled.Settings, contentDescription = null)// Handle other screens if needed
 
+                                else -> {
 
+                                }
                             }
-                        },
-                        modifier = Modifier.size(24.dp * scale)
+                        }
                     )
                 }
             }
@@ -178,7 +173,7 @@ fun MainContent() {
                 Profile()
             }
             composable(BottomNavigationScreens.GroceryList.route) {
-                GroceryList()
+                GroceryList(viewModel = viewModel)
             }
             composable(BottomNavigationScreens.Recipes.route) {
                 RecipesPage(viewModel = viewModel)
@@ -199,8 +194,8 @@ fun MainContent() {
 }
 
 @Composable
-fun GroceryList() {
-    GroceriesView()
+fun GroceryList(viewModel: IngredientViewModel) {
+    GroceriesView(viewModel = viewModel)
 }
 
 @Composable

@@ -37,8 +37,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
 import coil.compose.rememberImagePainter
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -91,12 +94,27 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         }
     }
 
-    Column(modifier = Modifier) {
-        recipeIngredientsList.forEach { ingredient ->
-            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+    Column(
+        modifier = Modifier
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column (
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .weight(weight = 1f, fill = false)
+        ) {
+            recipeIngredientsList.forEach { ingredient ->
+                IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+            }
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
-        RecipeButton(onClick = createRecipeOnClick)
+        RecipeButton(
+            onClick = createRecipeOnClick,
+            modifier = Modifier
+                .padding(vertical = 2.dp)
+                .fillMaxWidth()
+        )
     }
 
     if (recipeVisible){
@@ -172,7 +190,7 @@ private suspend fun createMessage(request: String, context: Context) : String{
 }
 
 @Composable
-fun RecipeButton(onClick: () -> Unit) {
+fun RecipeButton(onClick: () -> Unit, modifier: Modifier) {
 
     Button(onClick = onClick) {
         Text("Create Recipe")

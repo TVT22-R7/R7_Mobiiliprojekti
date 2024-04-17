@@ -1,13 +1,7 @@
 package com.example.r7mobiiliprojekti
 
 import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -21,7 +15,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -31,7 +24,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
@@ -42,25 +34,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.chat.chatCompletionRequest
-import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
-import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import kotlinx.coroutines.launch
 
 @Composable
@@ -141,7 +130,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
     if (recipeVisible){
         ResponseCard(
             text = recipeText,
-            onClick = {recipeVisible = false},
+            onClose = {recipeVisible = false},
             canRegenerate = canRegenerateRecipe,
             onRegenerateRecipe = {createRecipeOnClick()}
         )
@@ -243,25 +232,24 @@ fun RecipeButton(
 
 
 @Composable
-fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ResponseCard (text: String, onClose: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
+    // Dialog for full screen card
+    Dialog(
+        onDismissRequest = { onClose() },
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false, usePlatformDefaultWidth = false)
     ) {
         ElevatedCard(
             modifier = Modifier
-                .align(Alignment.Center)
                 .padding(all = 16.dp),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )
         ) {
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
@@ -272,15 +260,15 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     fontSize = 16.sp,
                 )
 
-                Row (
+                Row(
 
                 ) {
-                    if (canRegenerate){
+                    if (canRegenerate) {
                         Button(
                             modifier = Modifier
                                 .padding(start = 16.dp, bottom = 16.dp),
                             onClick = onRegenerateRecipe
-                        ){
+                        ) {
                             Text(text = "Generate new")
                         }
                     }
@@ -290,7 +278,7 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     Button(
                         modifier = Modifier
                             .padding(end = 16.dp, bottom = 16.dp),
-                        onClick = onClick
+                        onClick = onClose
                     ) {
                         Text(
                             text = "Close",
@@ -299,10 +287,7 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     }
                 }
             }
-
-
         }
-
     }
 }
 
@@ -336,7 +321,7 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClick = {})
+    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClose = {})
 }
 object RecipePreferences {
     private const val PREFS_NAME = "RecipePreferences"

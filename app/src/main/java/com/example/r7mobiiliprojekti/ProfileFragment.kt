@@ -122,7 +122,7 @@ fun ProfileScreen() {
                 if (showFullRecipe) {
                     ResponseCard(
                         text = recipe,
-                        onClick = {
+                        onClose = {
                             showFullRecipeMap[index] = false
                             recipeIsOpen = false
                         }

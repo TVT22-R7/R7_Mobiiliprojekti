@@ -265,7 +265,8 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                 Text(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
-                        .weight(weight = 1f, fill = false),
+                        .weight(weight = 1f, fill = false)
+                        .padding(all = 12.dp),
                     text = text,
                     style = MaterialTheme.typography.headlineMedium,
                     fontSize = 16.sp,
@@ -294,7 +295,6 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                         Text(
                             text = "Close",
                             modifier = Modifier
-                                .padding(8.dp)
                         )
                     }
                 }

@@ -37,11 +37,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
 import coil.compose.rememberImagePainter
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.collectAsState
@@ -62,15 +67,6 @@ import kotlinx.coroutines.launch
 fun RecipesPage(viewModel: IngredientViewModel) {
     val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
     val context = LocalContext.current
-    var ingredientList by remember {
-        mutableStateOf(emptyList<String>())
-    }
-
-    for (ingredient in recipeIngredientsList) {
-        ingredientList = ingredientList + ingredient.name
-    }
-
-    val coroutineScope = rememberCoroutineScope()
 
     // saves recipe received from openai
     var recipeText by remember {
@@ -81,26 +77,74 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         mutableStateOf(false)
     }
 
+    var recipeIsLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var canRegenerateRecipe by remember {
+        mutableStateOf(true)
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
     // Launches a coroutine to get openai response
-    val createRecipeOnClick: () -> Unit = {
+    fun createRecipeOnClick() {
+
+        if (recipeIngredientsList.isEmpty()){
+            recipeVisible = true
+            recipeText = "Please add ingredients"
+            canRegenerateRecipe = false
+            return
+        }
+
+        recipeIsLoading = true
+        canRegenerateRecipe = true
+
         coroutineScope.launch {
-            val ingredients = ingredientList.joinToString(separator = ", ")
+            var ingredientNames = emptyList<String>()
+            for (ingredient in recipeIngredientsList){
+                ingredientNames = ingredientNames + ingredient.name
+            }
+            val ingredients = ingredientNames.joinToString(separator = ", ")
             recipeText = createMessage(ingredients, context)
             recipeVisible = true
+            recipeIsLoading = false
             Log.d("chat message", ingredients)
         }
     }
 
-    Column(modifier = Modifier) {
-        recipeIngredientsList.forEach { ingredient ->
-            IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+    Column(
+        modifier = Modifier
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        Column (
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .weight(weight = 1f, fill = false)
+        ) {
+            recipeIngredientsList.forEach { ingredient ->
+                IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+            }
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
-        RecipeButton(onClick = createRecipeOnClick)
+        RecipeButton(
+            onClick = { createRecipeOnClick() },
+            modifier = Modifier
+                .padding(12.dp)
+                .height(52.dp)
+                .width(150.dp),
+            isLoading = recipeIsLoading
+        )
     }
 
     if (recipeVisible){
-        ResponseCard(text = recipeText, onClick = {recipeVisible = false})
+        ResponseCard(
+            text = recipeText,
+            onClick = {recipeVisible = false},
+            canRegenerate = canRegenerateRecipe,
+            onRegenerateRecipe = {createRecipeOnClick()}
+        )
     }
 }
 
@@ -141,7 +185,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
 }
 
 // Creates openai bot, sends a request and returns the answer
-private suspend fun createMessage(request: String, context: Context) : String{
+private suspend fun createMessage(request: String, context: Context) : String {
     val openAI = OpenAI(
         token = BuildConfig.OPENAI_API_KEY
     )
@@ -159,6 +203,8 @@ private suspend fun createMessage(request: String, context: Context) : String{
         )
     )
 
+    Log.d("Request", chatMessages.toString())
+
     val completionRequest = chatCompletionRequest {
         model = modelId
         messages = chatMessages
@@ -172,17 +218,32 @@ private suspend fun createMessage(request: String, context: Context) : String{
 }
 
 @Composable
-fun RecipeButton(onClick: () -> Unit) {
+fun RecipeButton(
+    onClick: () -> Unit,
+    modifier: Modifier,
+    isLoading: Boolean
+) {
 
-    Button(onClick = onClick) {
-        Text("Create Recipe")
+    if (isLoading){
+        Button(onClick = { /*Do nothing*/ }, modifier = modifier) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(1f),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
+    } else {
+        Button(onClick = onClick, modifier = modifier) {
+            Text(text = "Create Recipe")
+        }
     }
 }
 
+
 @Composable
-fun ResponseCard (text: String, onClick: () -> Unit) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -190,39 +251,50 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
     ) {
         ElevatedCard(
             modifier = Modifier
-                .width(screenWidth - 50.dp)
-                .height(screenHeight - 100.dp)
                 .align(Alignment.Center)
                 .padding(all = 16.dp),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )
         ) {
-            Column {
+            Column (
+                modifier = Modifier
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ){
                 Text(
                     modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 48.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .weight(weight = 1f, fill = false)
+                        .padding(all = 12.dp),
                     text = text,
                     style = MaterialTheme.typography.headlineMedium,
                     fontSize = 16.sp,
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
-
                 Row (
-                    verticalAlignment = Alignment.Bottom,
+
                 ) {
+                    if (canRegenerate){
+                        Button(
+                            modifier = Modifier
+                                .padding(start = 16.dp, bottom = 16.dp),
+                            onClick = onRegenerateRecipe
+                        ){
+                            Text(text = "Generate new")
+                        }
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
                         modifier = Modifier
-                            .padding(end = 36.dp, bottom = 16.dp),
+                            .padding(end = 16.dp, bottom = 16.dp),
                         onClick = onClick
                     ) {
                         Text(
-                            text = "Close"
+                            text = "Close",
+                            modifier = Modifier
                         )
                     }
                 }
@@ -264,7 +336,7 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    // IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, beef{})
+    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClick = {})
 }
 object RecipePreferences {
     private const val PREFS_NAME = "RecipePreferences"

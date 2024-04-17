@@ -67,13 +67,6 @@ import kotlinx.coroutines.launch
 fun RecipesPage(viewModel: IngredientViewModel) {
     val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
     val context = LocalContext.current
-    var ingredientList by remember {
-        mutableStateOf(emptyList<String>())
-    }
-
-    for (ingredient in recipeIngredientsList) {
-        ingredientList = ingredientList + ingredient.name
-    }
 
     // saves recipe received from openai
     var recipeText by remember {
@@ -88,15 +81,31 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         mutableStateOf(false)
     }
 
+    var canRegenerateRecipe by remember {
+        mutableStateOf(true)
+    }
+
     val coroutineScope = rememberCoroutineScope()
 
     // Launches a coroutine to get openai response
-    val createRecipeOnClick: () -> Unit = {
+    fun createRecipeOnClick() {
+
+        if (recipeIngredientsList.isEmpty()){
+            recipeVisible = true
+            recipeText = "Please add ingredients"
+            canRegenerateRecipe = false
+            return
+        }
 
         recipeIsLoading = true
+        canRegenerateRecipe = true
 
         coroutineScope.launch {
-            val ingredients = ingredientList.joinToString(separator = ", ")
+            var ingredientNames = emptyList<String>()
+            for (ingredient in recipeIngredientsList){
+                ingredientNames = ingredientNames + ingredient.name
+            }
+            val ingredients = ingredientNames.joinToString(separator = ", ")
             recipeText = createMessage(ingredients, context)
             recipeVisible = true
             recipeIsLoading = false
@@ -120,14 +129,7 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(
-            onClick = {
-                if (ingredientList.isEmpty()){
-                    recipeVisible = true
-                    recipeText = "Please add ingredients"
-                } else {
-                    createRecipeOnClick
-                }
-            },
+            onClick = { createRecipeOnClick() },
             modifier = Modifier
                 .padding(12.dp)
                 .height(52.dp)
@@ -137,7 +139,12 @@ fun RecipesPage(viewModel: IngredientViewModel) {
     }
 
     if (recipeVisible){
-        ResponseCard(text = recipeText, onClick = {recipeVisible = false})
+        ResponseCard(
+            text = recipeText,
+            onClick = {recipeVisible = false},
+            canRegenerate = canRegenerateRecipe,
+            onRegenerateRecipe = {createRecipeOnClick()}
+        )
     }
 }
 
@@ -196,6 +203,8 @@ private suspend fun createMessage(request: String, context: Context) : String {
         )
     )
 
+    Log.d("Request", chatMessages.toString())
+
     val completionRequest = chatCompletionRequest {
         model = modelId
         messages = chatMessages
@@ -234,7 +243,7 @@ fun RecipeButton(
 
 
 @Composable
-fun ResponseCard (text: String, onClick: () -> Unit) {
+fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -242,37 +251,50 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
     ) {
         ElevatedCard(
             modifier = Modifier
-                .padding(all = 16.dp)
-                .align(Alignment.Center),
+                .align(Alignment.Center)
+                .padding(all = 16.dp),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )
         ) {
-            Column {
+            Column (
+                modifier = Modifier
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ){
                 Text(
                     modifier = Modifier
-                        .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 48.dp)
-                        .verticalScroll(rememberScrollState()),
+                        .verticalScroll(rememberScrollState())
+                        .weight(weight = 1f, fill = false),
                     text = text,
                     style = MaterialTheme.typography.headlineMedium,
                     fontSize = 16.sp,
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
-
                 Row (
-                    verticalAlignment = Alignment.Bottom,
+
                 ) {
+                    if (canRegenerate){
+                        Button(
+                            modifier = Modifier
+                                .padding(start = 16.dp, bottom = 16.dp),
+                            onClick = onRegenerateRecipe
+                        ){
+                            Text(text = "Generate new")
+                        }
+                    }
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     Button(
                         modifier = Modifier
-                            .padding(end = 36.dp, bottom = 16.dp),
+                            .padding(end = 16.dp, bottom = 16.dp),
                         onClick = onClick
                     ) {
                         Text(
-                            text = "Close"
+                            text = "Close",
+                            modifier = Modifier
+                                .padding(8.dp)
                         )
                     }
                 }
@@ -314,7 +336,7 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    // IngredientRow(ingredient = Ingredient(name = "banana", imageUrl = "", 100), {}, beef{})
+    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClick = {})
 }
 object RecipePreferences {
     private const val PREFS_NAME = "RecipePreferences"

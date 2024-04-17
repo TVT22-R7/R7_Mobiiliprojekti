@@ -120,10 +120,13 @@ fun ProfileScreen() {
                 }
 
                 if (showFullRecipe) {
-                    ResponseCard(text = recipe) {
-                        showFullRecipeMap[index] = false
-                        recipeIsOpen = false
-                    }
+                    ResponseCard(
+                        text = recipe,
+                        onClick = {
+                            showFullRecipeMap[index] = false
+                            recipeIsOpen = false
+                        }
+                    )
                 }
             }
         } else {

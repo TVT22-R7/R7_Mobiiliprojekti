@@ -40,11 +40,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.collectAsState
@@ -73,8 +75,6 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         ingredientList = ingredientList + ingredient.name
     }
 
-    val coroutineScope = rememberCoroutineScope()
-
     // saves recipe received from openai
     var recipeText by remember {
         mutableStateOf("")
@@ -84,12 +84,22 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         mutableStateOf(false)
     }
 
+    var recipeIsLoading by remember {
+        mutableStateOf(false)
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+
     // Launches a coroutine to get openai response
     val createRecipeOnClick: () -> Unit = {
+
+        recipeIsLoading = true
+
         coroutineScope.launch {
             val ingredients = ingredientList.joinToString(separator = ", ")
             recipeText = createMessage(ingredients, context)
             recipeVisible = true
+            recipeIsLoading = false
             Log.d("chat message", ingredients)
         }
     }
@@ -112,8 +122,10 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         RecipeButton(
             onClick = createRecipeOnClick,
             modifier = Modifier
-                .padding(vertical = 2.dp)
-                .fillMaxWidth()
+                .padding(12.dp)
+                .height(52.dp)
+                .width(150.dp),
+            isLoading = recipeIsLoading
         )
     }
 
@@ -159,7 +171,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
 }
 
 // Creates openai bot, sends a request and returns the answer
-private suspend fun createMessage(request: String, context: Context) : String{
+private suspend fun createMessage(request: String, context: Context) : String {
     val openAI = OpenAI(
         token = BuildConfig.OPENAI_API_KEY
     )
@@ -190,12 +202,29 @@ private suspend fun createMessage(request: String, context: Context) : String{
 }
 
 @Composable
-fun RecipeButton(onClick: () -> Unit, modifier: Modifier) {
+fun RecipeButton(
+    onClick: () -> Unit,
+    modifier: Modifier,
+    isLoading: Boolean
+) {
 
-    Button(onClick = onClick) {
-        Text("Create Recipe")
+    if (isLoading){
+        Button(onClick = { /*Do nothing*/ }, modifier = modifier) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(1f),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
+    } else {
+        Button(onClick = onClick, modifier = modifier) {
+            Text(text = "Create Recipe")
+        }
     }
 }
+
 
 @Composable
 fun ResponseCard (text: String, onClick: () -> Unit) {

@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
 
 
 class MainActivity : ComponentActivity() {
@@ -114,6 +115,7 @@ fun MainContent() {
     Scaffold(
         topBar = {
             Surface(
+                color = if (darkModeEnabled) Color.DarkGray else Color.White,
                 modifier = Modifier.clickable {
                     activity?.navigateToSearch(navController)
                 }

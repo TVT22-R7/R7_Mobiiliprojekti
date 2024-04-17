@@ -29,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Surface
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.FocusRequester
@@ -108,6 +109,7 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
     var searchResults by remember { mutableStateOf<List<Ingredient>>(emptyList()) }
 
     val focusRequester = remember { FocusRequester() }
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -168,7 +170,7 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
             Text("Search")
         }
     }
-}
+}}
 
 // Ainesosan yksittäinen näkymä
 @Composable

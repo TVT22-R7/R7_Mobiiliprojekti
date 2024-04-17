@@ -41,36 +41,28 @@ import androidx.compose.material.AlertDialog
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.runtime.LaunchedEffect
+import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
+import com.example.r7mobiiliprojekti.DarkmodeON.isDarkMode
+import com.example.r7mobiiliprojekti.DarkmodeON.toggleDarkMode
+import com.example.r7mobiiliprojekti.UiScale.rescaleUI
+import com.example.r7mobiiliprojekti.UiScale.resetScale
+import com.example.r7mobiiliprojekti.UiScale.scale
 import com.google.firebase.database.FirebaseDatabase
 
-var scale by mutableStateOf(1.0f)
-var isDarkMode by mutableStateOf(false)
 
-fun toggleDarkMode() {
-    isDarkMode = !isDarkMode
-}
-fun rescaleUI() {
-    scale = 1.4f
-
-}
-fun resetScale(){
-    scale =1.0f
-
-
-}
 @Composable
 fun SettingsScreen() {
     val mAuth = FirebaseAuth.getInstance()
     val currentUser = mAuth.currentUser
     val context = LocalContext.current
-    val configuration = context.resources.configuration
     var licensesDialogShown by remember { mutableStateOf(false) }
-    when (configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
-        Configuration.UI_MODE_NIGHT_NO -> {} // Night mode is not active, we're using the light theme.
-        Configuration.UI_MODE_NIGHT_YES -> {} // Night mode is active, we're using dark theme.
+
+    LaunchedEffect(darkModeEnabled) {
+        // This block will execute whenever darkModeEnabled changes
+        Log.d("DarkModeEnabled", "Value changed to: $darkModeEnabled")
     }
 
-    val darkModeEnabled = isDarkMode
 
     Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White) {
         Column(
@@ -96,10 +88,8 @@ fun SettingsScreen() {
 
 
             HUDSettingsDropdown()
-
             Spacer(modifier = Modifier.height(20.dp))
-            ToggleDarkModeButton()
-            Spacer(modifier = Modifier.height(250.dp))
+            Spacer(modifier = Modifier.height(200.dp))
             PremiumButton()
             Spacer(modifier = Modifier.height(20.dp))
             LogoutButton(context = context)
@@ -153,63 +143,45 @@ private fun openLicenseInNewTab(context: Context) {
 fun HUDSettingsDropdown() {
     var expanded by remember { mutableStateOf(false) }
 
-    Column {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = "HUD settings")
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            DropdownMenuItem(onClick = {
-                toggleDarkMode()
-                expanded = false
-            }) {
-                Text(text = if (isDarkMode) "Light mode" else "Dark mode")
+    Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White) {
+        Column {
+            Button(
+                onClick = { expanded = true },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "HUD settings")
             }
 
-            DropdownMenuItem(onClick = {
-                rescaleUI()
-                expanded = false
-            }) {
-                Text(text = "Increase UI")
-            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                DropdownMenuItem(onClick = {
+                    toggleDarkMode()
+                    expanded = false
+                }) {
+                    Text(text = if (isDarkMode) "Light mode" else "Dark mode")
+                }
 
-            DropdownMenuItem(onClick = {
-                resetScale()
-                expanded = false
-            }) {
-                Text(text = "Reset UI")
+                DropdownMenuItem(onClick = {
+                    rescaleUI()
+                    expanded = false
+                }) {
+                    Text(text = "Increase UI")
+                }
+
+                DropdownMenuItem(onClick = {
+                    resetScale()
+                    expanded = false
+                }) {
+                    Text(text = "Reset UI")
+                }
             }
         }
     }
 }
-@Composable
-fun ToggleDarkModeButton() {
-    val context = LocalContext.current
-    val isNightMode = isSystemInDarkTheme()
 
-    Button(
-        onClick = {
-            if (isNightMode) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            } else {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            }
-            (context as? Activity)?.recreate()
-        },
-        modifier = Modifier
-            .height(32.dp)
-            .width(150.dp)
-    ) {
-        Text(text = if (isNightMode) "Light Mode" else "Dark Mode", fontSize = 14.sp)
-    }
-}
 @Composable
 fun LicensesDropdown() {
     var expanded by remember { mutableStateOf(false) }

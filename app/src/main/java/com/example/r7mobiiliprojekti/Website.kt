@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Surface
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -47,7 +48,7 @@ fun GroceriesView(viewModel: IngredientViewModel) {
     for (ingredient in shoppingListIngredientsList) {
         ingredientList = ingredientList + ingredient.name
     }
-
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White){
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +73,7 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             }
         )
     }
-}
+}}
 
 @Composable
 fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {

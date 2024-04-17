@@ -120,7 +120,13 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         }
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(
-            onClick = createRecipeOnClick,
+            onClick = {
+                if(ingredientList.isEmpty()){
+                    recipeVisible = true
+                    recipeText = "Please add ingredients"
+                }else{
+                    createRecipeOnClick
+                }},
             modifier = Modifier
                 .padding(12.dp)
                 .height(52.dp)

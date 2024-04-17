@@ -121,12 +121,13 @@ fun RecipesPage(viewModel: IngredientViewModel) {
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(
             onClick = {
-                if(ingredientList.isEmpty()){
+                if (ingredientList.isEmpty()){
                     recipeVisible = true
                     recipeText = "Please add ingredients"
-                }else{
+                } else {
                     createRecipeOnClick
-                }},
+                }
+            },
             modifier = Modifier
                 .padding(12.dp)
                 .height(52.dp)
@@ -234,8 +235,6 @@ fun RecipeButton(
 
 @Composable
 fun ResponseCard (text: String, onClick: () -> Unit) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
     Box(
         modifier = Modifier
             .fillMaxSize(),
@@ -243,10 +242,8 @@ fun ResponseCard (text: String, onClick: () -> Unit) {
     ) {
         ElevatedCard(
             modifier = Modifier
-                .width(screenWidth - 50.dp)
-                .height(screenHeight - 100.dp)
-                .align(Alignment.Center)
-                .padding(all = 16.dp),
+                .padding(all = 16.dp)
+                .align(Alignment.Center),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )

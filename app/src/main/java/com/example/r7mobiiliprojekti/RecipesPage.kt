@@ -1,10 +1,12 @@
 package com.example.r7mobiiliprojekti
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -52,6 +54,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
 import com.aallam.openai.api.chat.ChatMessage
@@ -60,63 +63,66 @@ import com.aallam.openai.api.chat.chatCompletionRequest
 import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
+import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
+import com.example.r7mobiiliprojekti.UserAccountManager.googleAccountId
 import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
+import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.launch
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 @Composable
 fun RecipesPage(viewModel: IngredientViewModel) {
-    val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
-    val context = LocalContext.current
 
-    // saves recipe received from openai
-    var recipeText by remember {
-        mutableStateOf("")
-    }
+        val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
+        val context = LocalContext.current
 
-    var recipeVisible by remember {
-        mutableStateOf(false)
-    }
+        // saves recipe received from openai
+        var recipeText by remember {
+            mutableStateOf("")
+        }
 
-    var recipeIsLoading by remember {
-        mutableStateOf(false)
-    }
+        var recipeVisible by remember {
+            mutableStateOf(false)
+        }
 
-    var canRegenerateRecipe by remember {
-        mutableStateOf(true)
-    }
+        var recipeIsLoading by remember {
+            mutableStateOf(false)
+        }
+
+        var canRegenerateRecipe by remember {
+            mutableStateOf(true)
+        }
 
     val coroutineScope = rememberCoroutineScope()
 
     // Launches a coroutine to get openai response
-    fun createRecipeOnClick() {
-
-        if (recipeIngredientsList.isEmpty()){
-            recipeVisible = true
-            recipeText = "Please add ingredients"
-            canRegenerateRecipe = false
-            return
-        }
-
-        recipeIsLoading = true
-        canRegenerateRecipe = true
-
+    fun createRecipeOnClick(context: Context) {
         coroutineScope.launch {
-            var ingredientNames = emptyList<String>()
-            for (ingredient in recipeIngredientsList){
-                ingredientNames = ingredientNames + ingredient.name
+            Log.d("chat message", googleAccountId ?: "Google account ID is null")
+            // Check user's premium status to determine if they can generate a recipe
+            val isPremium = checkUserPremiumStatus(googleAccountId) // Assuming googleAccountId is accessible here
+            if (isPremium) {
+                if (recipeIngredientsList.isEmpty()) {
+                    recipeVisible = true
+                    recipeText = "Please add ingredients"
+                    return@launch
+                }
+
+                val ingredients = recipeIngredientsList.joinToString(separator = ", ") { it.name }
+                recipeText = createMessage(ingredients, context)
+                recipeVisible = true
+                Log.d("chat message", ingredients)
+            } else {
+                // Show message for non-premium user
+                showNonPremiumMessage(context)
             }
-            val ingredients = ingredientNames.joinToString(separator = ", ")
-            recipeText = createMessage(ingredients, context)
-            recipeVisible = true
-            recipeIsLoading = false
-            Log.d("chat message", ingredients)
         }
     }
 
+    Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White){
     Column(
-        modifier = Modifier
-            .fillMaxHeight(),
-        verticalArrangement = Arrangement.SpaceBetween
+        modifier = Modifier.fillMaxSize()
     ) {
         Column (
             modifier = Modifier
@@ -124,12 +130,17 @@ fun RecipesPage(viewModel: IngredientViewModel) {
                 .weight(weight = 1f, fill = false)
         ) {
             recipeIngredientsList.forEach { ingredient ->
-                IngredientRow(ingredient = ingredient, onIngredientRemove = {viewModel.deleteFromRecipe(ingredient)})
+                IngredientRow(
+                    ingredient = ingredient,
+                    onIngredientRemove = { viewModel.deleteFromRecipe(ingredient) }
+                )
             }
         }
+
         // A button that generates a recipe using OpenAI, and shows the recipe to user
         RecipeButton(
-            onClick = { createRecipeOnClick() },
+            onClick = { createRecipeOnClick(context) },
+
             modifier = Modifier
                 .padding(12.dp)
                 .height(52.dp)
@@ -143,14 +154,45 @@ fun RecipesPage(viewModel: IngredientViewModel) {
             text = recipeText,
             onClick = {recipeVisible = false},
             canRegenerate = canRegenerateRecipe,
-            onRegenerateRecipe = {createRecipeOnClick()}
+            onRegenerateRecipe = {createRecipeOnClick(context)}
         )
+    }
+}}
+suspend fun checkUserPremiumStatus(userId: String?): Boolean {
+    return suspendCoroutine { continuation ->
+        if (userId == null) {
+            continuation.resume(false)
+            return@suspendCoroutine
+        }
+
+        val database = FirebaseDatabase.getInstance("https://r7-mobiiliprojekti-default-rtdb.europe-west1.firebasedatabase.app").reference
+        val usersRef = database.child("users").child(userId)
+        Log.e(TAG, "WE GOT ID =  : $userId")
+
+        // Get current premium status from the database
+        usersRef.child("premium").get().addOnSuccessListener { dataSnapshot ->
+            val currentPremiumStatus = dataSnapshot.getValue(Boolean::class.java)
+            val isPremium = currentPremiumStatus ?: false
+            continuation.resume(isPremium)
+        }.addOnFailureListener { exception ->
+            Log.e(TAG, "Error getting premium status: $exception")
+            // error
+            continuation.resume(false)
+        }
     }
 }
 
 
+fun showNonPremiumMessage(context: Context) {
+//message for non premium user
+    Toast.makeText(context, "Upgrade to premium to access this feature.", Toast.LENGTH_SHORT).show()
+}
+
+
+
 @Composable
 fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {
+    Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -182,7 +224,7 @@ fun IngredientRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Un
             Text(text = "Remove")
         }
     }
-}
+}}
 
 // Creates openai bot, sends a request and returns the answer
 private suspend fun createMessage(request: String, context: Context) : String {

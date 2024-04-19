@@ -75,7 +75,7 @@ fun SettingsScreen() {
                 text = "Settings",
                 color = if(darkModeEnabled) Color.White else Color.Black,
                 textAlign = TextAlign.Center,
-                fontSize = 20.sp,
+                fontSize = 30.sp,
                 modifier = Modifier.padding(16.dp)
             )
 

@@ -42,6 +42,7 @@ import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalUriHandler
 import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
 import com.example.r7mobiiliprojekti.DarkmodeON.isDarkMode
 import com.example.r7mobiiliprojekti.DarkmodeON.toggleDarkMode
@@ -86,10 +87,9 @@ fun SettingsScreen() {
 
             LicensesDropdown()
 
-
+            Spacer(modifier = Modifier.height(20.dp))
             HUDSettingsDropdown()
             Spacer(modifier = Modifier.height(20.dp))
-            Spacer(modifier = Modifier.height(200.dp))
             PremiumButton()
             Spacer(modifier = Modifier.height(20.dp))
             LogoutButton(context = context)
@@ -147,7 +147,11 @@ fun HUDSettingsDropdown() {
         Column {
             Button(
                 onClick = { expanded = true },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 45.dp)
+                    .height((32 * scale).dp)
+                    .width((150 * scale).dp)
             ) {
                 Text(text = "HUD settings")
             }
@@ -185,11 +189,16 @@ fun HUDSettingsDropdown() {
 @Composable
 fun LicensesDropdown() {
     var expanded by remember { mutableStateOf(false) }
+    val uriHandler = LocalUriHandler.current
 
     Column {
         Button(
             onClick = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 45.dp)
+                .height((32 * scale).dp)
+                .width((150 * scale).dp)
         ) {
             Text(text = "Licenses")
         }
@@ -201,17 +210,17 @@ fun LicensesDropdown() {
         ) {
 
             DropdownMenuItem(onClick = {
-
+                uriHandler.openUri("https://github.com/google/secrets-gradle-plugin")
                 expanded = false
             }) {
-                Text(text = "License ")
+                Text(text = "Secrets Gradle Plugin")
             }
 
             DropdownMenuItem(onClick = {
-
+                uriHandler.openUri("https://www.edamam.com/")
                 expanded = false
             }) {
-                Text(text = "License ")
+                Text(text = "Edamam food database API")
             }
         }
     }

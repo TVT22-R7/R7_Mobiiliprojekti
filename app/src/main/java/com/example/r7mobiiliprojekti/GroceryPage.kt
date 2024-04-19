@@ -4,11 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Surface
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -16,7 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -35,7 +37,7 @@ fun GroceriesView(viewModel: IngredientViewModel) {
     for (ingredient in shoppingListIngredientsList) {
         ingredientList = ingredientList + ingredient.name
     }
-
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White){
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -58,10 +60,11 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             }
         )
     }
-}
+}}
 
 @Composable
 fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -111,47 +114,54 @@ fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient
         }
 
     }
-}
+}}
 
 @Composable
 fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)
+    Surface(
+        color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White
     ) {
-        // Tuotteen kuva
-        Image(
-            painter = rememberImagePainter(ingredient.imageUrl),
-            contentDescription = null,
-            modifier = Modifier
-                .size(50.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
-        )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
+        val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
         ) {
-            Text(text = ingredient.name)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "${ingredient.quantityForList}")
-        }
+            // Tuotteen kuva
+            Image(
+                painter = rememberImagePainter(ingredient.imageUrl),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(shape = RoundedCornerShape(8.dp))
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Text(text = ingredient.name)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "${ingredient.quantityForList}")
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // Poista tuote
-        FloatingActionButton(
-            modifier = Modifier
-                .size(width = 72.dp,height = 36.dp),
-            onClick = {
-                onIngredientRemove(ingredient)
             }
-        ) {
-            Text(text = "Remove")
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Poista tuote
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(width = 72.dp, height = 36.dp),
+                onClick = {
+                    onIngredientRemove(ingredient)
+                }
+            ) {
+                Text(text = "Remove")
+
+            }
         }
     }
 }
-
 
 
 @Composable

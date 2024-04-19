@@ -1,5 +1,6 @@
 package com.example.r7mobiiliprojekti
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -32,6 +33,8 @@ import androidx.compose.material.OutlinedButton
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,6 +68,9 @@ class IngredientViewModel : ViewModel() {
         updateIngredientList(groceryListIngredients, groceryListIngredientsList, ingredient) {
             groceryListIngredients.remove(ingredient.name)
         }
+    }
+    fun saveGroceryList(context: Context, groceryList: List<Ingredient>, listName: String) {
+        GroceryPreferences.saveGroceryList(context, groceryList, listName)
     }
     fun addToList(ingredient: Ingredient) {
         updateIngredientList(groceryListIngredients, groceryListIngredientsList, ingredient) { it.quantityForList++ }
@@ -108,6 +114,8 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
     var searchResults by remember { mutableStateOf<List<Ingredient>>(emptyList()) }
 
     val focusRequester = remember { FocusRequester() }
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -132,6 +140,10 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
                     if (searchText.isNotEmpty()) {
                         searchIngredients(searchText, appId, appKey) { results ->
                             searchResults = results.filter { it.imageUrl.isNotEmpty() }
+                        }
+                        // Sulkee näppäimistön
+                        coroutineScope.launch {
+                            softwareKeyboardController?.hide()
                         }
                     }
                 }
@@ -162,6 +174,10 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
                     searchIngredients(searchText, appId, appKey) { results ->
                         searchResults = results.filter { it.imageUrl.isNotEmpty() }
                     }
+                }
+                // Sulkee näppäimistön
+                coroutineScope.launch {
+                    softwareKeyboardController?.hide()
                 }
             }
         ) {
@@ -282,19 +298,28 @@ fun IngredientItem(
                     Spacer(modifier = Modifier.width(8.dp))
                     // Ainesosan reseptiin lisääminen
                     var buttonClicked by remember { mutableStateOf(false) }
+                    LaunchedEffect(ingredient) {
+                        buttonClicked = false
+                    }
                     OutlinedButton(
                         onClick = {
-                            onAddToRecipeClick()
-                            buttonClicked = true
+                            if (buttonClicked) {
+                                onRemoveFromRecipeClick()
+                            } else {
+                                onAddToRecipeClick()
+                            }
+                            buttonClicked = !buttonClicked
                         },
                         modifier = Modifier
-                            .width(100.dp)
+                            .widthIn(max = 200.dp)
                             .height(36.dp),
                         elevation = ButtonDefaults.elevation(0.dp)
                     ) {
                         Text(
                             text = if (buttonClicked) "Added!" else "Add to Recipes",
-                            fontSize = 8.sp
+                            fontSize = 8.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

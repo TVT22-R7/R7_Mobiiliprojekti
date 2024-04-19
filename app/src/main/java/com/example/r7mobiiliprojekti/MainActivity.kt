@@ -3,6 +3,8 @@ package com.example.r7mobiiliprojekti
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
@@ -168,11 +170,43 @@ fun MainContent() {
         }
     ) { innerPadding ->
         //reititykset funktioihin tässätiedostossa
-        NavHost(navController, startDestination = BottomNavigationScreens.Profile.route, Modifier.padding(innerPadding)) {
-            composable(BottomNavigationScreens.Profile.route) {
+        NavHost(
+            navController = navController,
+            startDestination = BottomNavigationScreens.Profile.route,
+            Modifier.padding(innerPadding)
+        ) {
+            composable(
+                route = BottomNavigationScreens.Profile.route,
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(700)
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(700)
+                    )
+                }
+            ) {
                 Profile()
             }
-            composable(BottomNavigationScreens.GroceryList.route) {
+            composable(
+                route = BottomNavigationScreens.GroceryList.route,
+                enterTransition = {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        animationSpec = tween(700)
+                    )
+                },
+                exitTransition = {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        animationSpec = tween(700)
+                    )
+                }
+            ) {
                 GroceryList(viewModel = viewModel)
             }
             composable(BottomNavigationScreens.Recipes.route) {

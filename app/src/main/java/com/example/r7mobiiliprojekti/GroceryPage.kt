@@ -4,11 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Surface
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -16,30 +18,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 
-/*
-class Website : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MainContent()
-        }
-    }
-}
- */
-
 @Composable
 fun GroceriesView(viewModel: IngredientViewModel) {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
-    var products by remember { mutableStateOf(listOf("")) }
+
     val shoppingListIngredientsList = viewModel.groceryListIngredientsList.collectAsState().value
-    val context = LocalContext.current
     var ingredientList by remember {
         mutableStateOf(emptyList<String>())
     }
@@ -47,35 +37,34 @@ fun GroceriesView(viewModel: IngredientViewModel) {
     for (ingredient in shoppingListIngredientsList) {
         ingredientList = ingredientList + ingredient.name
     }
-
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White){
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        FoodList(products)
 
         Spacer(modifier = Modifier.height(16.dp))
         shoppingListIngredientsList.forEach { ingredient ->
-            IngredientListRow(
+            IngredientRowWithCount(
                 ingredient = ingredient,
-                onIngredientRemove = { viewModel.deleteFromList(ingredient) }
+                onIngredientDown = { viewModel.removeFromList(ingredient) },
+                onIngredientUp = { viewModel.addToList(ingredient) }
             )
         }
         SearchField(
             modifier = Modifier.fillMaxWidth(),
             onValueChange = { searchValue = it },
             value = searchValue,
-            onSearch = { newValue ->
-                products = products + newValue.text
-                searchValue = TextFieldValue()
+            onSearch = { product -> viewModel.addToList(Ingredient(name = product.text, imageUrl = ""))
             }
         )
     }
-}
+}}
 
 @Composable
-fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {
+fun IngredientRowWithCount(ingredient: Ingredient, onIngredientDown: (Ingredient) -> Unit, onIngredientUp: (Ingredient) -> Unit) {
+    Surface(color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(8.dp)
@@ -88,80 +77,92 @@ fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -
                 .size(50.dp)
                 .clip(shape = RoundedCornerShape(8.dp))
         )
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp)
-        ) {
-            Text(text = ingredient.name)
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = "${ingredient.quantityForList}")
-        }
+        // Tuotteen nimi
+        Text(
+            text = ingredient.name,
+            modifier = Modifier.padding(start = 8.dp)
+        )
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Poista tuote
+        // Vähennä tuotteen määrää
         FloatingActionButton(
             modifier = Modifier
-                .size(width = 72.dp,height = 36.dp),
+                .size(36.dp),
             onClick = {
-                onIngredientRemove(ingredient)
+                onIngredientDown(ingredient)
             }
         ) {
-            Text(text = "Remove")
+            Text(text = "-")
         }
-    }
-}
-@Composable
-fun FoodList(products: List<String>) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(8.dp)
-    ) {
-        // Placeholder
-        Box(
-            modifier = Modifier
-                .size(50.dp)
-                .clip(shape = RoundedCornerShape(8.dp))
+
+        // Tuotteen määrä
+        Text(
+            text = "${ingredient.quantityForList}",
+            modifier = Modifier.padding(all = 8.dp)
         )
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            products.forEach { product ->
-                ProductItem(product = product)
+
+        // Lisää tuotteen määrää
+        FloatingActionButton(
+            modifier = Modifier
+                .size(36.dp),
+            onClick = {
+                onIngredientUp(ingredient)
             }
+        ) {
+            Text(text = "+")
         }
-        Spacer(modifier = Modifier.weight(1f))
+
     }
-    /*
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            products.forEach { product ->
-                ProductItem(product = product)
-            }
-        }*/
-}
+}}
 
 @Composable
-fun ProductItem(product: String) {
-    Text(
-        text = product,
-        modifier = Modifier.padding(start = 8.dp)
-    )
-    /*
-    Box(
-        modifier = Modifier
-            .background(Color.LightGray)
-            .padding(10.dp)
-            .fillMaxWidth(),
-        contentAlignment = Alignment.Center
+fun IngredientListRow(ingredient: Ingredient, onIngredientRemove: (Ingredient) -> Unit) {
+    Surface(
+        color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White
     ) {
-        Text(text = product)
-    }*/
+        val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(8.dp)
+        ) {
+            // Tuotteen kuva
+            Image(
+                painter = rememberImagePainter(ingredient.imageUrl),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(shape = RoundedCornerShape(8.dp))
+            )
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp)
+            ) {
+                Text(text = ingredient.name)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(text = "${ingredient.quantityForList}")
+
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Poista tuote
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(width = 72.dp, height = 36.dp),
+                onClick = {
+                    onIngredientRemove(ingredient)
+                }
+            ) {
+                Text(text = "Remove")
+
+            }
+        }
+    }
 }
+
 
 @Composable
 fun SearchField(

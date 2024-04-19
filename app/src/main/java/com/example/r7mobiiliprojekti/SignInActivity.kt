@@ -1,35 +1,25 @@
 package com.example.r7mobiiliprojekti
-
-
-
 import android.content.ContentValues.TAG
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
-import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.IgnoreExtraProperties
-import com.google.firebase.database.database
-import com.google.firebase.firestore.auth.User
 
 class SignInActivity : AppCompatActivity() {
 
     companion object {
         private const val RC_SIGN_IN = 9001
     }
-    private lateinit var database: DatabaseReference
-    private lateinit var auth: FirebaseAuth
 
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,22 +27,19 @@ class SignInActivity : AppCompatActivity() {
 
         auth = FirebaseAuth.getInstance()
 
-        val currentUser = auth.currentUser
-
-        if (currentUser != null) {
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
-        }
-
         val signInButton = findViewById<Button>(R.id.signInButton)
         signInButton.setOnClickListener {
             signIn()
         }
+
+        val changeAccountButton = findViewById<Button>(R.id.changeAccountButton)
+        changeAccountButton.setOnClickListener {
+            signOut() // Sign out from the current account
+            signIn() // Start the sign-in process again to allow choosing a different account
+        }
     }
 
     private fun signIn() {
-        Log.d(TAG, "signIn: called")
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
@@ -61,6 +48,13 @@ class SignInActivity : AppCompatActivity() {
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
         val signInIntent = googleSignInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
+    }
+
+    private fun signOut() {
+        auth.signOut()
+        // Optionally sign out from Google account as well if needed
+        val googleSignInClient = GoogleSignIn.getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN)
+        googleSignInClient.signOut()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -103,6 +97,9 @@ class SignInActivity : AppCompatActivity() {
             }
     }
 
+
+
+
     private fun saveUserDataToDatabase(userId: String, email: String, premium: Boolean? = null) {
         val database =
             FirebaseDatabase.getInstance("https://r7-mobiiliprojekti-default-rtdb.europe-west1.firebasedatabase.app").reference
@@ -125,4 +122,3 @@ class SignInActivity : AppCompatActivity() {
             Log.e(TAG, "Error getting premium status: $exception")
         }
     }}
-

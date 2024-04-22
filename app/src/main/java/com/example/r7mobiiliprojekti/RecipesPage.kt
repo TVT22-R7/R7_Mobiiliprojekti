@@ -2,9 +2,6 @@ package com.example.r7mobiiliprojekti
 
 import android.content.ContentValues.TAG
 import android.content.Context
-import android.content.Intent
-import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -23,7 +20,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
@@ -44,23 +39,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.aallam.openai.api.chat.ChatMessage
 import com.aallam.openai.api.chat.ChatRole
 import com.aallam.openai.api.chat.chatCompletionRequest
-import com.aallam.openai.api.http.Timeout
 import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
@@ -121,43 +115,44 @@ fun RecipesPage(viewModel: IngredientViewModel) {
     }
 
     Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White){
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column (
-            modifier = Modifier
-                .verticalScroll(rememberScrollState())
-                .weight(weight = 1f, fill = false)
+        Column(
+            modifier = Modifier.fillMaxSize()
         ) {
-            recipeIngredientsList.forEach { ingredient ->
-                IngredientRow(
-                    ingredient = ingredient,
-                    onIngredientRemove = { viewModel.deleteFromRecipe(ingredient) }
-                )
+            Column (
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .weight(weight = 1f, fill = false)
+            ) {
+                recipeIngredientsList.forEach { ingredient ->
+                    IngredientRow(
+                        ingredient = ingredient,
+                        onIngredientRemove = { viewModel.deleteFromRecipe(ingredient) }
+                    )
+                }
             }
+
+            // A button that generates a recipe using OpenAI, and shows the recipe to user
+            RecipeButton(
+                onClick = { createRecipeOnClick(context) },
+
+                modifier = Modifier
+                    .padding(12.dp)
+                    .height(52.dp)
+                    .width(150.dp),
+                isLoading = recipeIsLoading
+            )
         }
 
-        // A button that generates a recipe using OpenAI, and shows the recipe to user
-        RecipeButton(
-            onClick = { createRecipeOnClick(context) },
-
-            modifier = Modifier
-                .padding(12.dp)
-                .height(52.dp)
-                .width(150.dp),
-            isLoading = recipeIsLoading
-        )
+        if (recipeVisible){
+            ResponseCard(
+                text = recipeText,
+                onClose = {recipeVisible = false},
+                canRegenerate = canRegenerateRecipe,
+                onRegenerateRecipe = {createRecipeOnClick(context)}
+            )
+        }
     }
-
-    if (recipeVisible){
-        ResponseCard(
-            text = recipeText,
-            onClick = {recipeVisible = false},
-            canRegenerate = canRegenerateRecipe,
-            onRegenerateRecipe = {createRecipeOnClick(context)}
-        )
-    }
-}}
+}
 suspend fun checkUserPremiumStatus(userId: String?): Boolean {
     return suspendCoroutine { continuation ->
         if (userId == null) {
@@ -242,8 +237,7 @@ private suspend fun createMessage(request: String, context: Context) : String {
         ChatMessage(
             role = ChatRole.User,
             content = request
-        )
-    )
+        )    )
 
     Log.d("Request", chatMessages.toString())
 
@@ -285,25 +279,24 @@ fun RecipeButton(
 
 
 @Composable
-fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun ResponseCard (text: String, onClose: () -> Unit, canRegenerate: Boolean = false, onRegenerateRecipe: () -> Unit = {}) {
+    // Dialog for full screen card
+    Dialog(
+        onDismissRequest = { onClose() },
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = false, usePlatformDefaultWidth = false)
     ) {
         ElevatedCard(
             modifier = Modifier
-                .align(Alignment.Center)
                 .padding(all = 16.dp),
             elevation = CardDefaults.cardElevation(
                 defaultElevation = 50.dp
             )
         ) {
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
                     modifier = Modifier
                         .verticalScroll(rememberScrollState())
@@ -314,15 +307,15 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     fontSize = 16.sp,
                 )
 
-                Row (
+                Row(
 
                 ) {
-                    if (canRegenerate){
+                    if (canRegenerate) {
                         Button(
                             modifier = Modifier
                                 .padding(start = 16.dp, bottom = 16.dp),
                             onClick = onRegenerateRecipe
-                        ){
+                        ) {
                             Text(text = "Generate new")
                         }
                     }
@@ -332,7 +325,7 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     Button(
                         modifier = Modifier
                             .padding(end = 16.dp, bottom = 16.dp),
-                        onClick = onClick
+                        onClick = onClose
                     ) {
                         Text(
                             text = "Close",
@@ -341,10 +334,7 @@ fun ResponseCard (text: String, onClick: () -> Unit, canRegenerate: Boolean = fa
                     }
                 }
             }
-
-
         }
-
     }
 }
 
@@ -378,7 +368,7 @@ fun ItemCard(item: String, modifier: Modifier = Modifier) {
 @Preview(showSystemUi = true)
 @Composable
 private fun ItemCardPreview() {
-    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClick = {})
+    ResponseCard(text = "Lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum lorem ipsum ", onClose = {})
 }
 object RecipePreferences {
     private const val PREFS_NAME = "RecipePreferences"

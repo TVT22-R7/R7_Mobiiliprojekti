@@ -189,8 +189,7 @@ private suspend fun createMessage(request: String, context: Context) : String {
         ChatMessage(
             role = ChatRole.User,
             content = request
-        )
-    )
+        )    )
 
     Log.d("Request", chatMessages.toString())
 

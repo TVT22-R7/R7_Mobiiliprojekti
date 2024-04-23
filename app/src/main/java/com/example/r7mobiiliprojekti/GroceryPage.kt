@@ -11,9 +11,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.material.ButtonColors
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Button
 import androidx.compose.material.Surface
-import androidx.compose.material3.Button
+
 import androidx.compose.material3.Card
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.OutlinedButton
@@ -41,6 +43,10 @@ import com.google.gson.Gson
 fun GroceriesView(viewModel: IngredientViewModel) {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
     val context = LocalContext.current
+    val buttonColors = ButtonDefaults.buttonColors(
+        backgroundColor = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White,
+        contentColor = if (DarkmodeON.darkModeEnabled) Color.White else Color.Black
+    )
     val showDialog = remember { mutableStateOf(false) }
     val openDialog = { showDialog.value = true }
     val listNameToSave = remember { mutableStateOf("") }
@@ -103,13 +109,14 @@ fun GroceriesView(viewModel: IngredientViewModel) {
             dialogOpen = true
         }
 
-        SaveListBtn(showDialog = openDialog)
+        SaveListBtn(showDialog = openDialog,buttonColors)
         if (showDialog.value) {
             DialogToSaveList(
                 onDismissRequest = { showDialog.value = false }
             ) { listName ->
                 listNameToSave.value = listName
                 showDialog.value = false
+                GroceryPreferences.saveGroceryList(context, groceryListIngredients, listName)
             }
         }
     }
@@ -178,7 +185,8 @@ fun addButton(
     onAddItem: (String) -> Unit,
     onCloseDialog: () -> Unit,
     itemName: String,
-    onItemNameChange: (String) -> Unit
+    onItemNameChange: (String) -> Unit,
+    buttonColors: ButtonColors // Added buttonColors parameter
 ) {
     AlertDialog(
         onDismissRequest = onCloseDialog,
@@ -195,14 +203,16 @@ fun addButton(
                 onClick = {
                     onAddItem(itemName)
                     onCloseDialog()
-                }
+                },
+                colors = buttonColors // Applied buttonColors here
             ) {
                 Text(text = "Add")
             }
         },
         dismissButton = {
             Button(
-                onClick = onCloseDialog
+                onClick = onCloseDialog,
+                colors = buttonColors // Applied buttonColors here
             ) {
                 Text(text = "Cancel")
             }
@@ -360,7 +370,8 @@ fun AddItemDialog(
 }
 @Composable
 fun SaveListBtn(
-    showDialog: () -> Unit
+    showDialog: () -> Unit,
+    buttonColors: ButtonColors
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -370,7 +381,8 @@ fun SaveListBtn(
             onClick = { showDialog() },
             modifier = Modifier.padding(8.dp)
                 .height((40 * UiScale.scale).dp)
-                .width((150 * UiScale.scale).dp)
+                .width((150 * UiScale.scale).dp),
+            colors = buttonColors // Use the provided buttonColors parameter
         ) {
             Text("Save List")
         }

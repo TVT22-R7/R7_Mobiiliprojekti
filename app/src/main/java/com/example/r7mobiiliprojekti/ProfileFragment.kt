@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
+import com.example.r7mobiiliprojekti.DarkmodeON.isDarkMode
 import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun ProfileScreen() {
@@ -69,11 +70,15 @@ fun ProfileScreen() {
             verticalArrangement = Arrangement.Top
         ) {
             Text(
-                text = "Welcome, ${currentUser?.displayName}",
-                color = textColor,
+                text = "Welcome, ${currentUser?.displayName}!",
+                color = if (isDarkMode) Color.Black else DarkModeTextHelper.getTextColor(isDarkMode),
                 textAlign = TextAlign.Center,
-                modifier = scaledTextModifier.padding(bottom = 40.dp) // Applying scale modifier
+                modifier = scaledTextModifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 30.dp, vertical = 14.dp) // Add padding
+                    .background(Color.LightGray, shape = RoundedCornerShape(8.dp)) // Add background color and rounded corners
             )
+            Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Stored recipes",
                 color = textColor,
@@ -195,9 +200,10 @@ fun RecipesSection(viewModel: IngredientViewModel) {
                     )
                 }
             }
+            }
         }
     }
-}
+
 
 
 
@@ -206,6 +212,8 @@ fun RecipesSection(viewModel: IngredientViewModel) {
 fun GroceryListSection(viewModel: IngredientViewModel) {
     val context = LocalContext.current
     var listIsOpen by remember { mutableStateOf(false) }
+    val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+    val scaledTextModifier = Modifier.scale(UiScale.scale) // Applying scale modifier
     val dialogState = remember { mutableStateOf<DialogState?>(null) }
     val (storedLists, setStoredLists) = remember {
         mutableStateOf(
@@ -233,11 +241,15 @@ fun GroceryListSection(viewModel: IngredientViewModel) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = limitedList.trim(),
-                            modifier = Modifier.weight(1f),
+                            Text(
+                                modifier = Modifier
+                                    .weight(1f),
 
-                        )
+                                text = limitedList.trim(),
+                                color = textColor,
+                            )
+
+
                         IconButton(
                             onClick = {
                                 GroceryPreferences.removeGroceryList(context, listName)

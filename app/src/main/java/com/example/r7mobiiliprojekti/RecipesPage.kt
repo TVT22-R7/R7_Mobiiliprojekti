@@ -4,10 +4,6 @@ import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
+import androidx.compose.material.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -42,14 +38,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -64,17 +59,21 @@ import com.aallam.openai.api.model.ModelId
 import com.aallam.openai.client.OpenAI
 import com.example.r7mobiiliprojekti.DarkmodeON.darkModeEnabled
 import com.example.r7mobiiliprojekti.UserAccountManager.googleAccountId
-import com.example.r7mobiiliprojekti.ui.theme.R7MobiiliprojektiTheme
 import com.google.firebase.database.FirebaseDatabase
 import kotlinx.coroutines.launch
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
+
 @Composable
 fun RecipesPage(viewModel: IngredientViewModel) {
-
+    val buttonColors = ButtonDefaults.buttonColors(
+        backgroundColor = if (darkModeEnabled) Color.DarkGray else Color.White,
+        contentColor = if (darkModeEnabled) Color.White else Color.Black
+    )
         val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
         val context = LocalContext.current
+
 
         // saves recipe received from openai
         var recipeText by remember {
@@ -144,7 +143,8 @@ fun RecipesPage(viewModel: IngredientViewModel) {
                     .padding(12.dp)
                     .height(52.dp)
                     .width(150.dp),
-                isLoading = recipeIsLoading
+                isLoading = recipeIsLoading,
+                buttonColors = buttonColors
             )
         }
 
@@ -262,7 +262,8 @@ private suspend fun createMessage(request: String, context: Context) : String {
 fun RecipeButton(
     onClick: () -> Unit,
     modifier: Modifier,
-    isLoading: Boolean
+    isLoading: Boolean,
+    buttonColors: androidx.compose.material.ButtonColors // Assuming ButtonColors is the correct type
 ) {
 
     if (isLoading){
@@ -279,10 +280,10 @@ fun RecipeButton(
         Button(
             onClick = onClick,
             modifier = Modifier
-
                 .height((40 * UiScale.scale).dp)
                 .width((150 * UiScale.scale).dp)
-                .offset(y = 8.dp)
+                .offset(y = 8.dp),
+            colors = buttonColors // Applying buttonColors here
         ) {
             Text(text = "Create Recipe")
         }

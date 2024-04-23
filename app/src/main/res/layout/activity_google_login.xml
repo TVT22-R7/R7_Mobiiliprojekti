@@ -24,8 +24,8 @@
 
         <Button
             android:id="@+id/signInButton"
-            android:layout_width="246dp"
-            android:layout_height="50dp"
+            android:layout_width="262dp"
+            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:background="@color/blue"
             android:text="Sign up with Google"
@@ -35,7 +35,7 @@
 
         <Button
             android:id="@+id/changeAccountButton"
-            android:layout_width="249dp"
+            android:layout_width="262dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginTop="16dp"

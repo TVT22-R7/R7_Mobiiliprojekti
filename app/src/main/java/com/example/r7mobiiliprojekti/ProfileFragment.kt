@@ -3,6 +3,7 @@ package com.example.r7mobiiliprojekti
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -40,8 +42,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,6 +60,7 @@ fun ProfileScreen() {
         color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White
     ) {
         val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+        val scaledTextModifier = Modifier.scale(UiScale.scale) // Applying scale modifier
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -67,11 +72,22 @@ fun ProfileScreen() {
                 text = "Welcome, ${currentUser?.displayName}",
                 color = textColor,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = scaledTextModifier.padding(bottom = 40.dp) // Applying scale modifier
             )
-            Text(text = "Stored recipes")
+            Text(
+                text = "Stored recipes",
+                color = textColor,
+                modifier = scaledTextModifier // Applying scale modifier
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
             RecipesSection(viewModel = viewModel)
-            Text(text = "Stored lists")
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "Stored lists",
+                color = textColor,
+                modifier = scaledTextModifier // Applying scale modifier
+            )
             GroceryListSection(viewModel = viewModel)
         }
     }
@@ -80,16 +96,13 @@ data class DialogState(
     val content: @Composable () -> Unit,
     val onDismiss: () -> Unit = {}
 )
-
 @Composable
 fun RecipesSection(viewModel: IngredientViewModel) {
     val context = LocalContext.current
     // Use state to hold the list of recipes
     val (storedRecipes, setStoredRecipes) = remember {
         mutableStateOf(
-            RecipePreferences.getRecipes(
-                context
-            )
+            RecipePreferences.getRecipes(context)
         )
     }
     val showFullRecipeMap = remember { mutableStateMapOf<Int, Boolean>() }
@@ -104,54 +117,62 @@ fun RecipesSection(viewModel: IngredientViewModel) {
                 } else {
                     recipe
                 }
+                val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+
                 val showFullRecipe = showFullRecipeMap[index] ?: false
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
+                Surface(
+                    modifier = Modifier.background(
+                        color = if (DarkmodeON.darkModeEnabled) Color.White else Color.DarkGray
+                    )
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Column(
                         modifier = Modifier
-                            .padding(8.dp)
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
                     ) {
-                        // Clickable text to show full recipe
-                        ClickableText(
-                            text = AnnotatedString(limitedRecipe.trim()),
-                            onClick = {
-                                if (!recipeIsOpen) {
-                                    showFullRecipeMap[index] = !showFullRecipe
-                                    recipeIsOpen = true
-                                } else {
-                                    showFullRecipeMap.forEach { (key, _) ->
-                                        showFullRecipeMap[key] = false
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            // Clickable text to show full recipe
+                            ClickableText(
+
+                                text = AnnotatedString(limitedRecipe.trim()),
+                                onClick = {
+                                    if (!recipeIsOpen) {
+                                        showFullRecipeMap[index] = !showFullRecipe
+                                        recipeIsOpen = true
+                                    } else {
+                                        showFullRecipeMap.forEach { (key, _) ->
+                                            showFullRecipeMap[key] = false
+                                        }
+                                        showFullRecipeMap[index] = true
                                     }
-                                    showFullRecipeMap[index] = true
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                            // Button to remove the recipe
+                            IconButton(
+                                onClick = {
+                                    RecipePreferences.removeRecipe(context, recipe)
+                                    // Update the stored recipes state after removing a recipe
+                                    setStoredRecipes(RecipePreferences.getRecipes(context))
                                 }
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                        // Button to remove the recipe
-                        IconButton(
-                            onClick = {
-                                RecipePreferences.removeRecipe(context, recipe)
-                                // Update the stored recipes state after removing a recipe
-                                setStoredRecipes(RecipePreferences.getRecipes(context))
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Delete,
+                                    contentDescription = "Delete Recipe"
+                                )
                             }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete Recipe"
-                            )
-                        }
-                        // Button to share recipes
-                        IconButton(
-                            onClick = { shareRecipes(context, listOf(recipe)) }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Share,
-                                contentDescription = "Share Recipe"
-                            )
+                            // Button to share recipes
+                            IconButton(
+                                onClick = { shareRecipes(context, listOf(recipe)) }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Share,
+                                    contentDescription = "Share Recipe"
+                                )
+                            }
                         }
                     }
                 }
@@ -177,6 +198,9 @@ fun RecipesSection(viewModel: IngredientViewModel) {
         }
     }
 }
+
+
+
 
 @Composable
 fun GroceryListSection(viewModel: IngredientViewModel) {
@@ -211,7 +235,8 @@ fun GroceryListSection(viewModel: IngredientViewModel) {
                     ) {
                         Text(
                             text = limitedList.trim(),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+
                         )
                         IconButton(
                             onClick = {

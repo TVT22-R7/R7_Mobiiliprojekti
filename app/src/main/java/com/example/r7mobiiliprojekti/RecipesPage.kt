@@ -68,8 +68,8 @@ import kotlin.coroutines.suspendCoroutine
 @Composable
 fun RecipesPage(viewModel: IngredientViewModel) {
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = if (darkModeEnabled) Color.DarkGray else Color.White,
-        contentColor = if (darkModeEnabled) Color.White else Color.Black
+        backgroundColor = if (darkModeEnabled) Color.White else Color.LightGray,
+        contentColor = if (darkModeEnabled) Color.Black else Color.Black
     )
         val recipeIngredientsList = viewModel.recipeIngredientsList.collectAsState().value
         val context = LocalContext.current

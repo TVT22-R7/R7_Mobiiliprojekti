@@ -44,8 +44,8 @@ fun GroceriesView(viewModel: IngredientViewModel) {
     var searchValue by remember { mutableStateOf(TextFieldValue()) }
     val context = LocalContext.current
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White,
-        contentColor = if (DarkmodeON.darkModeEnabled) Color.White else Color.Black
+        backgroundColor = if (DarkmodeON.darkModeEnabled) Color.White else Color.LightGray,
+        contentColor = if (DarkmodeON.darkModeEnabled) Color.Black else Color.Black
     )
     val showDialog = remember { mutableStateOf(false) }
     val openDialog = { showDialog.value = true }

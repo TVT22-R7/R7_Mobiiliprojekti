@@ -59,8 +59,8 @@ fun SettingsScreen() {
     val currentUser = mAuth.currentUser
     val context = LocalContext.current
     val buttonColors = ButtonDefaults.buttonColors(
-        backgroundColor = if (darkModeEnabled) Color.DarkGray else Color.White,
-        contentColor = if (darkModeEnabled) Color.White else Color.Black
+        backgroundColor = if (darkModeEnabled) Color.White else Color.LightGray,
+        contentColor = if (darkModeEnabled) Color.Black else Color.Black
     )
     var licensesDialogShown by remember { mutableStateOf(false) } // Define licensesDialogShown variable
 

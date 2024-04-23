@@ -44,7 +44,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class IngredientViewModel : ViewModel() {
     private val recipeIngredients = mutableStateMapOf<String, Ingredient>()
     private val groceryListIngredients = mutableStateMapOf<String, Ingredient>()
-
     val recipeIngredientsList = MutableStateFlow(recipeIngredients.values.toList())
     val groceryListIngredientsList = MutableStateFlow(groceryListIngredients.values.toList())
     fun addToRecipe(ingredient: Ingredient) {

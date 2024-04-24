@@ -38,6 +38,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.AlertDialog
+import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -57,13 +58,20 @@ fun SettingsScreen() {
     val mAuth = FirebaseAuth.getInstance()
     val currentUser = mAuth.currentUser
     val context = LocalContext.current
-    var licensesDialogShown by remember { mutableStateOf(false) }
+    val buttonColors = ButtonDefaults.buttonColors(
+        backgroundColor = if (darkModeEnabled) Color.White else Color.LightGray,
+        contentColor = if (darkModeEnabled) Color.Black else Color.Black
+    )
+    var licensesDialogShown by remember { mutableStateOf(false) } // Define licensesDialogShown variable
 
     LaunchedEffect(darkModeEnabled) {
         // This block will execute whenever darkModeEnabled changes
         Log.d("DarkModeEnabled", "Value changed to: $darkModeEnabled")
     }
 
+    // Call LicensesDialog and HUDSettingsDropdown outside the definition of buttonColors
+
+    HUDSettingsDropdown(buttonColors = buttonColors)
 
     Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White) {
         Column(
@@ -76,71 +84,30 @@ fun SettingsScreen() {
                 text = "Settings",
                 color = if(darkModeEnabled) Color.White else Color.Black,
                 textAlign = TextAlign.Center,
-                fontSize = 20.sp,
+                fontSize = 30.sp,
                 modifier = Modifier.padding(16.dp)
             )
 
-            if (licensesDialogShown) {
-                LicensesDialog(onDismissRequest = { licensesDialogShown = false  })
-            }
 
 
-            LicensesDropdown()
+            LicensesDropdown(buttonColors)
 
             Spacer(modifier = Modifier.height(20.dp))
-            HUDSettingsDropdown()
+            HUDSettingsDropdown(buttonColors)
             Spacer(modifier = Modifier.height(20.dp))
-            PremiumButton()
+            PremiumButton(buttonColors = buttonColors)
             Spacer(modifier = Modifier.height(20.dp))
-            LogoutButton(context = context)
+            LogoutButton(context = context, buttonColors = buttonColors)
             Spacer(modifier = Modifier.height(18.dp))
-            GoogleAccountButton()
+            GoogleAccountButton(buttonColors = buttonColors)
         }
-
     }
 }
+
+
+
 @Composable
-fun LicensesDialog(onDismissRequest: () -> Unit) {
-    val context = LocalContext.current
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = "Licenses") },
-        text = {
-
-            Text(text = "This is where you can display the licenses information.")
-        },
-        confirmButton = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Button(
-                    onClick = {
-
-                        openLicenseInNewTab(context)
-                        onDismissRequest()
-                    },
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                ) {
-                    Text(text = "Open in New Tab")
-                }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = onDismissRequest,
-                    colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
-                ) {
-                    Text(text = "Close")
-                }
-            }
-        }
-    )
-}
-
-private fun openLicenseInNewTab(context: Context) {
-    val licenseUrl = ""
-
-    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(licenseUrl))
-    context.startActivity(intent)
-}
-@Composable
-fun HUDSettingsDropdown() {
+fun HUDSettingsDropdown(buttonColors: ButtonColors) {
     var expanded by remember { mutableStateOf(false) }
 
     Surface(color = if (darkModeEnabled) Color.DarkGray else Color.White) {
@@ -151,7 +118,8 @@ fun HUDSettingsDropdown() {
                     .fillMaxWidth()
                     .padding(horizontal = 45.dp)
                     .height((32 * scale).dp)
-                    .width((150 * scale).dp)
+                    .width((150 * scale).dp),
+                colors = buttonColors
             ) {
                 Text(text = "HUD settings")
             }
@@ -185,9 +153,10 @@ fun HUDSettingsDropdown() {
         }
     }
 }
-
 @Composable
-fun LicensesDropdown() {
+fun LicensesDropdown(buttonColors: ButtonColors) {
+    // Define your LicensesDropdown composable function here
+    // Example implementation:
     var expanded by remember { mutableStateOf(false) }
     val uriHandler = LocalUriHandler.current
 
@@ -198,7 +167,8 @@ fun LicensesDropdown() {
                 .fillMaxWidth()
                 .padding(horizontal = 45.dp)
                 .height((32 * scale).dp)
-                .width((150 * scale).dp)
+                .width((150 * scale).dp),
+                    colors = buttonColors
         ) {
             Text(text = "Licenses")
         }
@@ -208,7 +178,6 @@ fun LicensesDropdown() {
             onDismissRequest = { expanded = false },
             modifier = Modifier.fillMaxWidth()
         ) {
-
             DropdownMenuItem(onClick = {
                 uriHandler.openUri("https://github.com/google/secrets-gradle-plugin")
                 expanded = false
@@ -227,37 +196,24 @@ fun LicensesDropdown() {
 }
 
 
-@Composable
-fun LogoutButton(context: Context) {
 
-    Button(
-        onClick = { signOutAndStartSignInActivity(context) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 45.dp)
-            .height((32 * scale).dp)
-            .width((150 * scale).dp)
-    ) {
-        Text(text = "Logout")
-    }
-}
 @Composable
-fun PremiumButton(){
-
+fun PremiumButton(buttonColors: ButtonColors) {
     Button(
         onClick = { GiveUserPremium(premium = true) },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 45.dp)
             .height((32 * scale).dp)
-            .width((150 * scale).dp)
+            .width((150 * scale).dp),
+        colors = buttonColors
     ) {
         Text(text = "Premium")
     }
 }
 
 @Composable
-fun GoogleAccountButton() {
+fun GoogleAccountButton(buttonColors: ButtonColors) {
     val context = LocalContext.current
 
     Button(
@@ -266,11 +222,28 @@ fun GoogleAccountButton() {
             .fillMaxWidth()
             .padding(horizontal = 45.dp)
             .height((32 * scale).dp)
-            .width((150 * scale).dp)
+            .width((150 * scale).dp),
+        colors = buttonColors
     ) {
         Text(text = "Google Account")
     }
 }
+
+@Composable
+fun LogoutButton(context: Context, buttonColors: ButtonColors) {
+    Button(
+        onClick = { signOutAndStartSignInActivity(context) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 45.dp)
+            .height((32 * scale).dp)
+            .width((150 * scale).dp),
+        colors = buttonColors
+    ) {
+        Text(text = "Logout")
+    }
+}
+
 private fun GiveUserPremium(premium:Boolean){
     val database = FirebaseDatabase.getInstance("https://r7-mobiiliprojekti-default-rtdb.europe-west1.firebasedatabase.app").reference
     val usersRef = database.child("users")

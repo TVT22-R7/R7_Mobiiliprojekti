@@ -30,6 +30,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Surface
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.focus.FocusRequester
@@ -43,7 +44,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class IngredientViewModel : ViewModel() {
     private val recipeIngredients = mutableStateMapOf<String, Ingredient>()
     private val groceryListIngredients = mutableStateMapOf<String, Ingredient>()
-
     val recipeIngredientsList = MutableStateFlow(recipeIngredients.values.toList())
     val groceryListIngredientsList = MutableStateFlow(groceryListIngredients.values.toList())
     fun addToRecipe(ingredient: Ingredient) {
@@ -116,72 +116,77 @@ fun SearchView(viewModel: IngredientViewModel, appId: String, appKey: String) {
     val focusRequester = remember { FocusRequester() }
     val softwareKeyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Surface(
+        color = if (DarkmodeON.darkModeEnabled) Color.DarkGray else Color.White
     ) {
-        // Tekstikenttä
-        TextField(
-            value = searchText,
-            onValueChange = { searchText = it },
+        val textColor = DarkModeTextHelper.getTextColor(DarkmodeON.darkModeEnabled)
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 8.dp)
-                .focusRequester(focusRequester),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Search
-            ),
-            keyboardActions = KeyboardActions(
-                onSearch = {
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Tekstikenttä
+            TextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
+                    .focusRequester(focusRequester),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+                ),
+                keyboardActions = KeyboardActions(
+                    onSearch = {
+                        if (searchText.isNotEmpty()) {
+                            searchIngredients(searchText, appId, appKey) { results ->
+                                searchResults = results.filter { it.imageUrl.isNotEmpty() }
+                            }
+                            // Sulkee näppäimistön
+                            coroutineScope.launch {
+                                softwareKeyboardController?.hide()
+                            }
+                        }
+                    }
+                )
+            )
+            // Avaa näppäimistön automaattisesti käyttäjälle kun näkymä avataan
+            DisposableEffect(Unit) {
+                focusRequester.requestFocus()
+                onDispose { }
+            }
+            // Ainesosien listanäkymä
+            LazyColumn {
+                items(searchResults) { ingredient ->
+                    IngredientItem(
+                        ingredient = ingredient,
+                        onAddToRecipeClick = { viewModel.addToRecipe(ingredient) },
+                        onAddToListClick = { viewModel.addToList(ingredient) },
+                        onRemoveFromRecipeClick = { viewModel.removeFromRecipe(ingredient) },
+                        onRemoveFromListClick = { viewModel.removeFromList(ingredient) }
+                    )
+                }
+            }
+            // Haku-painike
+            Spacer(modifier = Modifier.height(16.dp))
+            Button(
+                onClick = {
                     if (searchText.isNotEmpty()) {
                         searchIngredients(searchText, appId, appKey) { results ->
                             searchResults = results.filter { it.imageUrl.isNotEmpty() }
                         }
-                        // Sulkee näppäimistön
-                        coroutineScope.launch {
-                            softwareKeyboardController?.hide()
-                        }
+                    }
+                    // Sulkee näppäimistön
+                    coroutineScope.launch {
+                        softwareKeyboardController?.hide()
                     }
                 }
-            )
-        )
-        // Avaa näppäimistön automaattisesti käyttäjälle kun näkymä avataan
-        DisposableEffect(Unit) {
-            focusRequester.requestFocus()
-            onDispose { }
-        }
-        // Ainesosien listanäkymä
-        LazyColumn {
-            items(searchResults) { ingredient ->
-                IngredientItem(
-                    ingredient = ingredient,
-                    onAddToRecipeClick = { viewModel.addToRecipe(ingredient) },
-                    onAddToListClick = { viewModel.addToList(ingredient) },
-                    onRemoveFromRecipeClick = { viewModel.removeFromRecipe(ingredient) },
-                    onRemoveFromListClick = { viewModel.removeFromList(ingredient) }
-                )
+            ) {
+                Text("Search")
             }
-        }
-        // Haku-painike
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(
-            onClick = {
-                if (searchText.isNotEmpty()) {
-                    searchIngredients(searchText, appId, appKey) { results ->
-                        searchResults = results.filter { it.imageUrl.isNotEmpty() }
-                    }
-                }
-                // Sulkee näppäimistön
-                coroutineScope.launch {
-                    softwareKeyboardController?.hide()
-                }
-            }
-        ) {
-            Text("Search")
         }
     }
 }

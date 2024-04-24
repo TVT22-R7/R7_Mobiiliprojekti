@@ -2,5 +2,5 @@
 <resources>
 
     <style name="Theme.R7Mobiiliprojekti" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar"/>
+    <style name="AppTheme" parent="Theme.AppCompat.DayNight"/>
 </resources>

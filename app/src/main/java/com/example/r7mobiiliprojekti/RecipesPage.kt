@@ -96,6 +96,10 @@ fun RecipesPage(viewModel: IngredientViewModel) {
 
     // Launches a coroutine to get openai response
     fun createRecipeOnClick(context: Context) {
+
+        // Loading icon on button
+        recipeIsLoading = true
+
         coroutineScope.launch {
             Log.d("chat message", googleAccountId ?: "Google account ID is null")
             // Check user's premium status to determine if they can generate a recipe
@@ -104,15 +108,18 @@ fun RecipesPage(viewModel: IngredientViewModel) {
                 if (recipeIngredientsList.isEmpty()) {
                     recipeVisible = true
                     recipeText = "Please add ingredients"
+                    recipeIsLoading = false
                     return@launch
                 }
 
                 val ingredients = recipeIngredientsList.joinToString(separator = ", ") { it.name }
                 recipeText = createMessage(ingredients, context)
                 recipeVisible = true
+                recipeIsLoading = false
                 Log.d("chat message", ingredients)
             } else {
                 // Show message for non-premium user
+                recipeIsLoading = false
                 showNonPremiumMessage(context)
             }
         }
@@ -267,7 +274,14 @@ fun RecipeButton(
 ) {
 
     if (isLoading){
-        Button(onClick = { /*Do nothing*/ }, modifier = modifier) {
+        Button(
+            onClick = { /*Do nothing*/ },
+            modifier = Modifier
+                .height((40 * UiScale.scale).dp)
+                .width((150 * UiScale.scale).dp)
+                .offset(y = 8.dp),
+            colors = buttonColors // Applying buttonColors here
+        ) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .fillMaxHeight()
